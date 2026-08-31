@@ -38,10 +38,10 @@
 	<div class="h-6 lg:h-8 mb-4">
 		{#if titlesLoaded}
 			<div in:fade={{ duration: 250 }}>
-				{#if data.prevLesson}
+				{#if data.prevLesson && previousTitle}
 					<a class="anchor" href={`/lesson/${data.prevLesson}`}>&lt;&lt; {previousTitle}</a>
 				{/if}
-				{#if data.prevLesson && data.nextLesson}
+				{#if data.prevLesson && previousTitle && data.nextLesson}
 					<span class="hidden lg:inline mx-2 text-zinc-700">|</span>
 				{/if}
 				{#if data.nextLesson && data.nextLesson !== 'lesson-1'}
