@@ -31,7 +31,7 @@
 	export let data;
 	const userSnapshot = writable<any[]>([]);
 
-	let lessonSlug: string;
+	let lessonSlug: string | undefined;
 
 	let animateSnapIcon = false;
 	let animateLoadIcon = false;

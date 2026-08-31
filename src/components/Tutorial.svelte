@@ -39,13 +39,13 @@
 		{#if titlesLoaded}
 			<div in:fade={{ duration: 250 }}>
 				{#if data.prevLesson}
-					<a class="anchor" href={`/tutorial/${data.prevLesson}`}>&lt;&lt; {previousTitle}</a>
+					<a class="anchor" href={`/lesson/${data.prevLesson}`}>&lt;&lt; {previousTitle}</a>
 				{/if}
 				{#if data.prevLesson && data.nextLesson}
 					<span class="hidden lg:inline mx-2 text-zinc-700">|</span>
 				{/if}
 				{#if data.nextLesson && data.nextLesson !== 'lesson-1'}
-					<a class="anchor hidden lg:inline" href={`/tutorial/${data.nextLesson}`}
+					<a class="anchor hidden lg:inline" href={`/lesson/${data.nextLesson}`}
 						>{nextTitle} &gt;&gt;</a
 					>
 				{/if}
@@ -69,13 +69,13 @@
 			<div in:fade={{ duration: 250 }} class="my-8">
 				{#if data.nextLesson === 'lesson-1'}
 					<p>
-						<a class="anchor" href={`/tutorial/${data.nextLesson}`}
+						<a class="anchor" href={`/lesson/${data.nextLesson}`}
 							>Start the first lesson &gt;&gt;</a
 						>
 					</p>
 				{:else if data.nextLesson}
 					<p>
-						<a class="anchor" href={`/tutorial/${data.nextLesson}`}>{nextTitle} &gt;&gt;</a>
+						<a class="anchor" href={`/lesson/${data.nextLesson}`}>{nextTitle} &gt;&gt;</a>
 					</p>
 				{/if}
 			</div>
