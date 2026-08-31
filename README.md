@@ -54,12 +54,11 @@ Set up the following tables in your Supabase project:
 
 #### `lessons` Table
 
-
-
 | Column Name | Type  | Notes                                                 |
 | ----------- | ----- | ----------------------------------------------------- |
 | id          | int8  | Primary key, auto-incrementing                        |
 | slug        | text  | Unique identifier for lessons                         |
+| title       | text  | Lesson title                                          |
 | content     | jsonb | Lesson content in Markdown, as array of strings       |
 | prev_lesson | text  | Used to display link                                  |
 | next_lesson | text  | Used to display link                                  |
