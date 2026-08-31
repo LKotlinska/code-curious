@@ -31,7 +31,7 @@
 	} from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 
-	import Tutorial from '../../../components/Tutorial.svelte';
+	import Lessons from '../../../components/Lessons.svelte';
 	import Editor from '../../../components/Editor.svelte';
 	import Console from '../../../components/Console.svelte';
 	import Matter from '../../../components/Matter.svelte';
@@ -290,7 +290,7 @@
 			<!-- Show lesson content -->
 			{#if lessonData && showTutorial}
 				<div in:fade={{ duration: 250 }} out:fade={{ duration: 50 }}>
-					<Tutorial data={lessonData.tutorial} />
+					<Lessons data={lessonData.tutorial} />
 				</div>
 			{:else}
 				<div class="w-full p-4">
