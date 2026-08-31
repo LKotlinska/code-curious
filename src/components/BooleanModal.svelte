@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import Modal from './Modal.svelte';
+	import InlinePanel from './InlinePanel.svelte';
 	import {
 		faExclamationTriangle,
 		faFloppyDisk,
@@ -82,7 +82,7 @@
 	};
 </script>
 
-<Modal {isOpen} on:close={closeModal}>
+<InlinePanel {isOpen} on:close={closeModal}>
 	<div slot="header" class="card-header flex justify-between items-start">
 		<div class="flex flex-col">
 			{#if editMode}
@@ -165,4 +165,4 @@
 			{/if}
 		</div>
 	</div>
-</Modal>
+</InlinePanel>
