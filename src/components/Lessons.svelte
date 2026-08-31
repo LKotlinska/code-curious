@@ -47,7 +47,7 @@
 						arrows={'left'}
 					/>
 				{/if}
-				{#if data.nextLesson && data.nextLesson !== 'lesson-1'}
+				{#if data.nextLesson && nextTitle}
 					<NavButton 
 						styles={"anchor hidden lg:inline"}
 						path={data.nextLesson}
@@ -75,7 +75,7 @@
 			<div in:fade={{ duration: 250 }} class="flex justify-end my-8">
 				{#if data.nextLesson === 'lesson-1'}
 					<NavButton styles={"anchor"} path={data.nextLesson} label={"Start the first lesson"} arrows={"right"}/>
-				{:else if data.nextLesson}
+				{:else if data.nextLesson && nextTitle}
 					<NavButton styles={"anchor"} path={data.nextLesson} label={nextTitle} arrows={"right"} />
 				{/if}
 			</div>
