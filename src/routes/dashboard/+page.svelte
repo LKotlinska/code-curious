@@ -224,9 +224,9 @@
 									autocomplete="off"
 									maxlength="25"
 								/>
-								<button type="submit" class="btn-icon bg-initial">
+								<button type="submit" class="btn-icon bg-initial ml-6">
 									<FontAwesomeIcon icon={faFloppyDisk} />
-									<span class="sr-only">Save Username</span>
+									<span>Save <span class="sr-only">Username</span></span>
 								</button>
 							</div>
 						</label>
@@ -246,7 +246,7 @@
 						<ul>
 							{#each $lessons as lesson}
 								<li class="flex items-center">
-									<a href={`/tutorial/${lesson.slug}`}>
+									<a href={`/lesson/${lesson.slug}`}>
 										<span class="badge"><FontAwesomeIcon icon={faArrowRight} /></span>
 										<span class="flex items-center gap-4">{lesson.title} </span>
 									</a>

@@ -5,8 +5,10 @@
 	import { faFaceSurprise, faUser } from '@fortawesome/free-solid-svg-icons';
 	import { user } from '$lib/auth';
 	import { supabase } from '$lib/supabaseClient';
+	import TutorialModal from '../components/TutorialModal.svelte';
 
 	let iconsLoaded = false;
+	let isTutorialOpen = false;
 
 	onMount(() => {
 		// Check if fonts are loaded
@@ -75,7 +77,8 @@
 				>
 			</div>
 			<nav class="lg:w-80 flex gap-6 justify-end">
-				<a href="/tutorial/welcome" class="hover:text-gray-200">Tutorial</a>
+				<button on:click={() => (isTutorialOpen = true)} class="hover:text-gray-200">Tutorial</button>
+				<a href="/lesson/lesson-1" class="hover:text-gray-200">Lessons</a>
 				{#if !$user}
 					<a href="/sign-in" class="hover:text-gray-200 flex gap-2 items-center"
 						><div class="w-5 h-5 flex items-center justify-center">
@@ -104,4 +107,8 @@
 		<!-- This is where the content of each page will be injected -->
 		<slot></slot>
 	</main>
+
+	{#if isTutorialOpen}
+		<TutorialModal isOpen={isTutorialOpen} on:close={() => (isTutorialOpen = false)} />
+	{/if}
 </div>

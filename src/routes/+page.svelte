@@ -32,7 +32,7 @@
 		<section class="p-4 text-sm lg:text-lg flex flex-col items-start">
 			<h3 class="text-xl">Keeping It Casual?</h3>
 			<p class="mt-2 mb-4">No problem! You can access all beginner lessons without an account.</p>
-			<a href="/tutorial/welcome" class="btn bg-primary-700 flex gap-2"
+			<a href="/lesson/lesson-1" class="btn bg-primary-700 flex gap-2"
 				><FontAwesomeIcon icon={faArrowRight} />Start Learning</a
 			>
 		</section>
