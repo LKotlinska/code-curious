@@ -75,7 +75,7 @@
 				>
 			</div>
 			<nav class="lg:w-80 flex gap-6 justify-end">
-				<a href="/tutorial/welcome" class="hover:text-gray-200">Tutorial</a>
+				<a href="/lesson/welcome" class="hover:text-gray-200">Lessons</a>
 				{#if !$user}
 					<a href="/sign-in" class="hover:text-gray-200 flex gap-2 items-center"
 						><div class="w-5 h-5 flex items-center justify-center">
