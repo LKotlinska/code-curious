@@ -54,26 +54,20 @@
 		}
 	});
 
-	// IDs of currently edited variables
-	let activeStringId: number | null = null;
-	let activeNumberId: number | null = null;
-	let activeBooleanId: number | null = null;
-	let activeObjectId: number | null = null;
-	let activeArrayId: number | null = null;
-	let activeLogId: number | null = null;
-	let activeActionId: number | null = null;
-
-	let newAction: boolean = false;
+	// ID of the block whose edit panel is currently open (blocks share one id space)
+	let activeEditId: number | null = null;
+	// Type of the new block whose create panel is currently open, or null
+	let newType: string | null = null;
 
 	const handleClose = () => {
-		activeStringId = null;
-		activeNumberId = null;
-		activeBooleanId = null;
-		activeObjectId = null;
-		activeArrayId = null;
-		activeLogId = null;
-		activeActionId = null;
-		newAction = false;
+		activeEditId = null;
+		newType = null;
+	};
+
+	// Open a create panel below the button row (closing any edit panel first)
+	const startNew = (type: string) => {
+		activeEditId = null;
+		newType = type;
 	};
 
 	// Get name of variable with the given ID
@@ -83,11 +77,8 @@
 	};
 
 	function activateBlock(block: Record<string, any>) {
-		if (block.type === 'string') activeStringId = block.id;
-		else if (block.type === 'number') activeNumberId = block.id;
-		else if (block.type === 'boolean') activeBooleanId = block.id;
-		else if (block.type === 'object') activeObjectId = block.id;
-		else if (block.type === 'array') activeArrayId = block.id;
+		newType = null;
+		activeEditId = block.id;
 	}
 
 	// Reset Editor, either clear or load the default lesson snapshot--never the user's snapshot
@@ -201,7 +192,7 @@
 				{#if block.blockType === 'log'}
 					<button
 						on:click={() => {
-							activeLogId = block.id;
+							activateBlock(block);
 						}}
 						type="button"
 					>
@@ -238,7 +229,7 @@
 				{#if block.blockType === 'action'}
 					<button
 						on:click={() => {
-							activeActionId = block.id;
+							activateBlock(block);
 						}}
 						type="button"
 					>
@@ -256,107 +247,77 @@
 						</div>
 					</button>
 				{/if}
+
+				<!-- Edit panel, opens attached to the block being edited -->
+				{#if activeEditId === block.id}
+					<div class="w-full pl-4 border-l-2 border-secondary-900">
+						{#if block.blockType === 'log'}
+							<LogModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+						{:else if block.blockType === 'action'}
+							<ActionModal
+								editMode={true}
+								isOpen
+								variableId={null}
+								actionId={block.id}
+								on:close={handleClose}
+							/>
+						{:else if block.type === 'string'}
+							<StringModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+						{:else if block.type === 'number'}
+							<NumberModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+						{:else if block.type === 'boolean'}
+							<BooleanModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+						{:else if block.type === 'object'}
+							<ObjectModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+						{:else if block.type === 'array'}
+							<ArrayModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+						{/if}
+					</div>
+				{/if}
 			{/each}
 		{/if}
 	</section>
 	<hr class="opacity-50" />
 
-	<!-- Modals for Editing Variables -->
-	{#if activeStringId !== null}
-		<StringModal
-			editMode={true}
-			isOpen={activeStringId !== null}
-			variableId={activeStringId}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	{#if activeNumberId !== null}
-		<NumberModal
-			editMode={true}
-			isOpen={activeNumberId !== null}
-			variableId={activeNumberId}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	{#if activeBooleanId !== null}
-		<BooleanModal
-			editMode={true}
-			isOpen={activeBooleanId !== null}
-			variableId={activeBooleanId}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	{#if activeObjectId !== null}
-		<ObjectModal
-			editMode={true}
-			isOpen={activeObjectId !== null}
-			variableId={activeObjectId}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	{#if activeArrayId !== null}
-		<ArrayModal
-			editMode={true}
-			isOpen={activeArrayId !== null}
-			variableId={activeArrayId}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	{#if activeLogId !== null}
-		<LogModal
-			editMode={true}
-			isOpen={activeLogId !== null}
-			variableId={activeLogId}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	{#if activeActionId !== null}
-		<ActionModal
-			editMode={true}
-			isOpen={activeActionId !== null}
-			variableId={null}
-			actionId={activeActionId}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	{#if newAction}
-		<ActionModal
-			editMode={false}
-			isOpen={newAction}
-			variableId={null}
-			actionId={null}
-			on:close={handleClose}
-		/>
-	{/if}
-
-	<!-- In the following section, the user can choose to create a new variable,
-	 a new console log, etc -->
+	<!-- Add-block buttons: always their own line, never pushed around by an open panel -->
 	<section class="flex flex-wrap gap-2 lg:gap-4 items-start pt-2">
-		<div>
-			<NewVariable />
-		</div>
-		<div>
-			<NewLog />
-		</div>
-		<div>
-			<button
-				on:click={() => {
-					newAction = true;
-				}}
-				type="button"
-				class="btn btn-sm bg-primary-900 flex gap-2"
-			>
-				<FontAwesomeIcon icon={faPlus} /> Action
-			</button>
-		</div>
+		<NewVariable on:pick={(e) => startNew(e.detail)} />
+		<NewLog on:pick={(e) => startNew(e.detail)} />
+		<button
+			on:click={() => startNew('action')}
+			type="button"
+			class="btn btn-sm bg-primary-900 flex gap-2"
+		>
+			<FontAwesomeIcon icon={faPlus} /> Action
+		</button>
 	</section>
+
+	<!-- New-block form: full width, in its own space below the buttons -->
+	{#if newType}
+		<div class="w-full mt-4">
+			{#if newType === 'string'}
+				<StringModal editMode={false} isOpen variableId={undefined} on:close={handleClose} />
+			{:else if newType === 'number'}
+				<NumberModal editMode={false} isOpen variableId={undefined} on:close={handleClose} />
+			{:else if newType === 'boolean'}
+				<BooleanModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+			{:else if newType === 'object'}
+				<ObjectModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+			{:else if newType === 'array'}
+				<ArrayModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+			{:else if newType === 'log'}
+				<LogModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+			{:else if newType === 'action'}
+				<ActionModal
+					editMode={false}
+					isOpen
+					variableId={null}
+					actionId={null}
+					on:close={handleClose}
+				/>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>

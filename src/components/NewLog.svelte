@@ -1,24 +1,12 @@
-<!-- NewLog is the '+ Console Log' button in the Editor. When cklicked, the LogModal is opened, with editMode false, which crates a new Console Log from scratch -->
+<!-- NewLog is the '+ Console Log' button in the Editor. When clicked, it asks the Editor to open a new-log panel below the button row. -->
 <script lang="ts">
-	import LogModal from './LogModal.svelte';
+	import { createEventDispatcher } from 'svelte';
 	import { faPlus } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 
-	let newLog = false;
-
-	const toggleLog = () => {
-		newLog = !newLog;
-	};
-
-	const handleClose = () => {
-		newLog = false;
-	};
+	const dispatch = createEventDispatcher();
 </script>
 
-<button on:click={toggleLog} class="btn btn-sm bg-primary-900 flex gap-2">
+<button on:click={() => dispatch('pick', 'log')} class="btn btn-sm bg-primary-900 flex gap-2">
 	<FontAwesomeIcon icon={faPlus} /> Console Log
 </button>
-
-{#if newLog}
-	<LogModal editMode={false} isOpen={newLog} variableId={null} on:close={handleClose} />
-{/if}
