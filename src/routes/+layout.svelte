@@ -1,14 +1,19 @@
 <script lang="ts">
-	import '../app.postcss';
+	import '../app.css';
 	import { onMount } from 'svelte';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import { faFaceSurprise, faUser } from '@fortawesome/free-solid-svg-icons';
 	import { user } from '$lib/auth';
 	import { supabase } from '$lib/supabaseClient';
 	import TutorialModal from '../components/TutorialModal.svelte';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
 
-	let iconsLoaded = false;
-	let isTutorialOpen = false;
+	let { children }: Props = $props();
+
+	let iconsLoaded = $state(false);
+	let isTutorialOpen = $state(false);
 
 	onMount(() => {
 		// Check if fonts are loaded
@@ -17,15 +22,7 @@
 		});
 	});
 
-	let displayName: string = ''; // Variable to store the display name
-	// Update `displayName` based on `user` store's state
-	$: {
-		if ($user) {
-			getDisplayName().then((name) => {
-				displayName = name || '';
-			});
-		}
-	}
+	let displayName: string = $state(''); // Variable to store the display name
 
 	const getDisplayName = async () => {
 		// Get display name from user
@@ -39,6 +36,14 @@
 			return null;
 		}
 	};
+	// Update `displayName` based on `user` store's state
+	$effect(() => {
+		if ($user) {
+			getDisplayName().then((name) => {
+				displayName = name || '';
+			});
+		}
+	});
 </script>
 
 <svelte:head>
@@ -77,7 +82,9 @@
 				>
 			</div>
 			<nav class="lg:w-80 flex gap-6 justify-end">
-				<button on:click={() => (isTutorialOpen = true)} class="hover:text-gray-200">Tutorial</button>
+				<button onclick={() => (isTutorialOpen = true)} class="hover:text-gray-200 cursor-pointer"
+					>Tutorial</button
+				>
 				<a href="/lesson/lesson-1" class="hover:text-gray-200">Lessons</a>
 				{#if !$user}
 					<a href="/sign-in" class="hover:text-gray-200 flex gap-2 items-center"
@@ -105,10 +112,10 @@
 	<!-- Main Layout (shared) -->
 	<main class="flex-1 flex flex-col md:flex-row h-full">
 		<!-- This is where the content of each page will be injected -->
-		<slot></slot>
+		{@render children?.()}
 	</main>
 
 	{#if isTutorialOpen}
-		<TutorialModal isOpen={isTutorialOpen} on:close={() => (isTutorialOpen = false)} />
+		<TutorialModal isOpen={isTutorialOpen} onclose={() => (isTutorialOpen = false)} />
 	{/if}
 </div>

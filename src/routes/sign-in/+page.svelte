@@ -9,9 +9,9 @@
 		goto('/dashboard')
 	}
 
-	let email = '';
-	let password = '';
-	let errorMsg = '';
+	let email = $state('');
+	let password = $state('');
+	let errorMsg = $state('');
 
 	async function handleSignIn() {
 		const error = await signIn(email, password);
@@ -30,7 +30,13 @@
 		</header>
 		<hr class="opacity-50 mt-4" />
 		<section class="p-4">
-			<form on:submit|preventDefault={handleSignIn} class="flex flex-col gap-4">
+			<form
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleSignIn();
+				}}
+				class="flex flex-col gap-4"
+			>
 				<label class="label"
 					><span>Email</span><input
 						class="input"
@@ -58,11 +64,13 @@
 				</div>
 				{#if errorMsg}
 					<hr class="opacity-50" />
-					<aside class="alert variant-ghost-error">
+					<aside
+						class="flex flex-col items-start gap-2 rounded-lg border border-error-500 bg-error-500/20 p-4"
+					>
 						<!-- Icon -->
 						<div><FontAwesomeIcon icon={faExclamationTriangle} /></div>
 						<!-- Message -->
-						<div class="alert-message">
+						<div class="flex-1">
 							<p>{errorMsg}</p>
 						</div>
 					</aside>

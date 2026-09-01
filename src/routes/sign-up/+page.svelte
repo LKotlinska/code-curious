@@ -9,10 +9,11 @@
 		goto('/dashboard')
 	}
 
-	let email = '';
-	let password = '';
-	let confirmPassword = '';
-	let errorMsg = '';
+
+	let email = $state('');
+	let password = $state('');
+	let confirmPassword = $state('');
+	let errorMsg = $state('');
 
 	async function handleRegister() {
 		// Check if passwords match
@@ -37,7 +38,13 @@
 		</header>
 		<hr class="opacity-50 mt-2" />
 		<section class="p-4">
-			<form on:submit|preventDefault={handleRegister} class="flex flex-col gap-4">
+			<form
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleRegister();
+				}}
+				class="flex flex-col gap-4"
+			>
 				<label class="label"
 					><span>Email</span><input
 						class="input"
@@ -76,11 +83,13 @@
 		{#if errorMsg}
 			<hr class="opacity-50 mb-4" />
 			<footer class="card-footer">
-				<aside class="alert variant-ghost-error">
+				<aside
+					class="flex flex-col items-start gap-2 rounded-lg border border-error-500 bg-error-500/20 p-4"
+				>
 					<!-- Icon -->
 					<div><FontAwesomeIcon icon={faExclamationTriangle} /></div>
 					<!-- Message -->
-					<div class="alert-message">
+					<div class="flex-1">
 						<p>{errorMsg}</p>
 					</div>
 				</aside>
