@@ -5,9 +5,11 @@
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import { faExclamationTriangle, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 
-	$: if ($user) {
-		goto('/dashboard')
-	}
+	$effect(() => {
+		if ($user) {
+			goto('/dashboard');
+		}
+	});
 
 	let email = $state('');
 	let password = $state('');
