@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import Modal from './Modal.svelte';
+	import InlinePanel from './InlinePanel.svelte';
 	import ColorPicker from './ColorPicker.svelte';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import {
@@ -87,7 +87,7 @@
 	};
 </script>
 
-<Modal {isOpen} on:close={closeModal}>
+<InlinePanel {isOpen} on:close={closeModal}>
 	<div slot="header" class="card-header flex justify-between items-start">
 		<div class="flex flex-col">
 			<!-- Display item type if in edit mode -->
@@ -187,4 +187,4 @@
 			{/if}
 		</div>
 	</div>
-</Modal>
+</InlinePanel>

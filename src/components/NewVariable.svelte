@@ -1,93 +1,35 @@
-<!-- NewVariable is the 'New Variable' button in the Editor. When a type is cklicked, the corresponding modal object is opened -->
+<!-- NewVariable is the 'Variable' button in the Editor. Picking a type asks the Editor to open the matching new-variable panel below the button row. -->
 <script lang="ts">
-	import StringModal from './StringModal.svelte';
-	import NumberModal from './NumberModal.svelte';
-	import BooleanModal from './BooleanModal.svelte';
-	import ObjectModal from './ObjectModal.svelte';
-	import ArrayModal from './ArrayModal.svelte';
+	import { createEventDispatcher } from 'svelte';
 	import { faPlus } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+
+	const dispatch = createEventDispatcher();
 
 	let showMenu = false;
 	const toggleMenu = () => {
 		showMenu = !showMenu;
 	};
 
-	let newString = false;
-	let newNumber = false;
-	let newBoolean = false;
-	let newObject = false;
-	let newArray = false;
-
-	const handleClose = () => {
-		newString = false;
-		newNumber = false;
-		newBoolean = false;
-		newObject = false;
-		newArray = false;
+	const pick = (type: string) => {
+		showMenu = false;
+		dispatch('pick', type);
 	};
 </script>
 
-<div class="flex flex-col gap-2">
-	<div class="flex">
-		<div>
-			<button on:click={toggleMenu} class="btn btn-sm bg-primary-900 flex gap-2">
-				<FontAwesomeIcon icon={faPlus} /> Variable
-			</button>
-		</div>
-		{#if showMenu}
-			<div class="flex flex-wrap">
-				<button
-					class="btn btn-sm"
-					on:click={() => {
-						toggleMenu();
-						newString = true;
-					}}>String</button
-				>
-				<button
-					class="btn btn-sm"
-					on:click={() => {
-						toggleMenu();
-						newNumber = true;
-					}}>Number</button
-				>
-				<button
-					class="btn btn-sm"
-					on:click={() => {
-						toggleMenu();
-						newBoolean = true;
-					}}>Boolean</button
-				>
-				<button
-					class="btn btn-sm"
-					on:click={() => {
-						toggleMenu();
-						newObject = true;
-					}}>Object</button
-				>
-				<button
-					class="btn btn-sm"
-					on:click={() => {
-						toggleMenu();
-						newArray = true;
-					}}>Array</button
-				>
-			</div>
-		{/if}
+<div class="flex">
+	<div>
+		<button on:click={toggleMenu} class="btn btn-sm bg-primary-900 flex gap-2">
+			<FontAwesomeIcon icon={faPlus} /> Variable
+		</button>
 	</div>
+	{#if showMenu}
+		<div class="flex flex-wrap">
+			<button class="btn btn-sm" on:click={() => pick('string')}>String</button>
+			<button class="btn btn-sm" on:click={() => pick('number')}>Number</button>
+			<button class="btn btn-sm" on:click={() => pick('boolean')}>Boolean</button>
+			<button class="btn btn-sm" on:click={() => pick('object')}>Object</button>
+			<button class="btn btn-sm" on:click={() => pick('array')}>Array</button>
+		</div>
+	{/if}
 </div>
-{#if newString}
-	<StringModal editMode={false} isOpen={newString} variableId={undefined} on:close={handleClose} />
-{/if}
-{#if newNumber}
-	<NumberModal editMode={false} isOpen={newNumber} variableId={undefined} on:close={handleClose} />
-{/if}
-{#if newBoolean}
-	<BooleanModal editMode={false} isOpen={newBoolean} variableId={null} on:close={handleClose} />
-{/if}
-{#if newObject}
-	<ObjectModal editMode={false} isOpen={newObject} variableId={null} on:close={handleClose} />
-{/if}
-{#if newArray}
-	<ArrayModal editMode={false} isOpen={newArray} variableId={null} on:close={handleClose} />
-{/if}

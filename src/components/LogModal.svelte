@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import Modal from './Modal.svelte';
+	import InlinePanel from './InlinePanel.svelte';
 	import { faFloppyDisk, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import type { Log } from '$lib/types';
@@ -99,7 +99,7 @@
 	};
 </script>
 
-<Modal {isOpen} on:close={closeModal}>
+<InlinePanel {isOpen} on:close={closeModal}>
 	<div slot="header" class="card-header flex justify-between items-start">
 		<div class="flex flex-col">
 			<!-- Display item type if in edit mode -->
@@ -258,4 +258,4 @@
 			</div>
 		</div>
 	</div>
-</Modal>
+</InlinePanel>
