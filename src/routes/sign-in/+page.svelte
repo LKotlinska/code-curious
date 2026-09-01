@@ -1,9 +1,13 @@
 <script lang="ts">
-	import { signIn } from '$lib/auth';
+	import { signIn, user } from '$lib/auth';
 	import { goto } from '$app/navigation';
 
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import { faExclamationTriangle, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
+
+	$: if ($user) {
+		goto('/dashboard')
+	}
 
 	let email = '';
 	let password = '';
