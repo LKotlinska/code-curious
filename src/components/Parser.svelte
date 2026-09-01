@@ -2,8 +2,12 @@
 	import { faBolt, faEye, faPlus } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 
-	// Expose the data prop to receive the data from the parent +page.svelte
-	export let placeholder: string[];
+	interface Props {
+		// Expose the data prop to receive the data from the parent +page.svelte
+		placeholder: string[];
+	}
+
+	let { placeholder }: Props = $props();
 </script>
 
 {#if placeholder[0] === 'StringModal'}
@@ -45,7 +49,7 @@
 	<div class="px-4 flex items-start mb-2">
 		<div class="p-1 flex border border-secondary-900 text-sm font-normal">
 			<div class="px-2 py-1 flex gap-2 items-center">
-				<span class="badge variant-filled text-md font-bold rounded-none">{placeholder[1]}</span>
+				<span class="badge preset-filled text-md font-bold rounded-none">{placeholder[1]}</span>
 			</div>
 			<div class="px-2 py-1 flex gap-2 items-center border-l-[1px] border-secondary-900">
 				{placeholder[2]}
@@ -71,7 +75,7 @@
 			{/if}
 			{#if placeholder[2]}
 				<div class="px-2 py-1 flex gap-2 items-center border-l-[1px] border-secondary-900">
-					<span class="badge variant-filled text-md font-bold rounded-none">{placeholder[2]}</span>
+					<span class="badge preset-filled text-md font-bold rounded-none">{placeholder[2]}</span>
 				</div>
 			{/if}
 			{#if placeholder[3]}
@@ -93,7 +97,7 @@
 				{placeholder[1]}
 			</div>
 			<div class="px-2 py-1 flex gap-2 items-center border-l-[1px] border-secondary-900">
-				<span class="badge variant-filled text-md font-bold rounded-none">
+				<span class="badge preset-filled text-md font-bold rounded-none">
 					{placeholder[2]}
 				</span>
 			</div>

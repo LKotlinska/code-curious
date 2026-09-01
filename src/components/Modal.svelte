@@ -1,24 +1,31 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 
-	// Props
-	export let isOpen: boolean = false; // Modal visibility control
-	const dispatch = createEventDispatcher();
+	interface Props {
+		// Props
+		isOpen?: boolean; // Modal visibility control
+		onclose: () => void;
+		header?: import('svelte').Snippet;
+		content?: import('svelte').Snippet;
+		footer?: import('svelte').Snippet;
+	}
+
+	let { isOpen = false, onclose, header, content, footer }: Props = $props();
 
 	// Close modal on escape key press
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape') {
-			dispatch('close');
+			onclose();
 			//isOpen = false;
 		}
 	}
 
-	let modalContainer: HTMLDivElement | null = null;
+	let modalContainer: HTMLDivElement | null = $state(null);
 
 	// Close modal on outside click
 	function handleClickOutside(event: MouseEvent) {
 		if (isOpen && event.target === modalContainer) {
-			dispatch('close');
+			onclose();
 		}
 	}
 
@@ -39,7 +46,7 @@
 	<!-- Background overlay -->
 	<div
 		bind:this={modalContainer}
-		class="fixed inset-0 bg-neutral-900 bg-opacity-50 z-50 flex items-start justify-center pt-0 md:pt-2"
+		class="fixed inset-0 bg-neutral-900/50 z-50 flex items-start justify-center pt-0 md:pt-2"
 		role="dialog"
 	>
 		<!-- Modal container -->
@@ -48,13 +55,13 @@
 			class="m-2 card w-full text-token space-y-4 rounded-lg shadow-lg overflow-hidden max-w-md z-50 relative"
 		>
 			<header>
-				<slot name="header"></slot>
+				{@render header?.()}
 			</header>
 			<hr class="opacity-50" />
-			<section><slot name="content"></slot></section>
+			<section>{@render content?.()}</section>
 			<hr class="opacity-50" />
 			<footer>
-				<slot name="footer"></slot>
+				{@render footer?.()}
 			</footer>
 		</dialog>
 	</div>

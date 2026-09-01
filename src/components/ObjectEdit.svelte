@@ -1,56 +1,57 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
 	import { faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import type { ObjectVariable } from '$lib/types';
 
-	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
+	interface Props {
+		objectVariable: ObjectVariable | null;
+		onupdate: (value: ObjectVariable) => void;
+	}
 
-	export let objectVariable: ObjectVariable | null;
-	const dispatch = createEventDispatcher();
-	let _object: Record<string, any> = {}; // Temporary object to store key-value pairs
-	let _pairCount: number = 1; // How many key-value pairs there are in the temporary object
+	let { objectVariable, onupdate }: Props = $props();
 
-	let objectTypes: string[] = [];
-	let objectValues: any[] = [];
 	// Helper to determine the type of each value
 	const getType = (value: any): string => {
 		const type = typeof value;
 		return type === 'string' || type === 'number' || type === 'boolean' ? type : 'string';
 	};
-	const getObjectTypes = () => {
-		//Loop through _object and get the type of each value using getType helper
-		const types = Object.values(_object).map((value) => getType(value));
-		return types;
-	};
 
-	if (!objectVariable) {
-		objectVariable = {
+	// Internal working copy of the object being edited, plus the parallel key/type/value
+	// arrays the table is built from. Computed once from the incoming prop.
+	function buildInitialState() {
+		const source = objectVariable;
+		const data: ObjectVariable = source ?? {
 			id: Date.now(),
 			blockType: 'variable',
 			name: '',
 			type: 'object',
 			value: { key1: '' },
 		};
-		objectTypes = ['string'];
-		_object = { ...objectVariable.value };
-		_pairCount = 1;
-	} else {
-		_object = { ...objectVariable.value };
-		objectTypes = getObjectTypes();
-		objectValues = Object.values(_object);
-		// For each item in objectTypes, check if it's a boolean and convert the corresponding value to
-		// a string, to accomodate the RadioGroup component
-		objectTypes.forEach((type, index) => {
-			if (type === 'boolean') {
-				objectValues[index] = String(objectValues[index]);
-			}
+		const object = { ...data.value };
+		const types = source ? Object.values(object).map((value) => getType(value)) : ['string'];
+		const values = Object.values(object);
+		// Booleans are held as strings to accommodate the radio inputs
+		types.forEach((type, index) => {
+			if (type === 'boolean') values[index] = String(values[index]);
 		});
-		// Update pair count
-		_pairCount = Object.keys(_object).length;
+		return {
+			data,
+			object,
+			types,
+			values,
+			keys: Object.keys(object),
+			pairCount: Object.keys(object).length,
+		};
 	}
 
-	let objectKeys: string[] = Object.keys(_object);
+	const initial = buildInitialState();
+
+	const objectData: ObjectVariable = initial.data;
+	let _object = $state<Record<string, any>>(initial.object); // Temporary object to store key-value pairs
+	let _pairCount = $state(initial.pairCount); // How many key-value pairs there are in the temporary object
+	let objectTypes = $state<string[]>(initial.types);
+	let objectValues = $state<any[]>(initial.values);
+	let objectKeys = $state<string[]>(initial.keys);
 
 	// Function to add an empty key-value pair
 	const addKeyValuePair = () => {
@@ -96,11 +97,11 @@
 			}
 		});
 
-		// Update objectVariable.value with the new object structure
-		objectVariable.value = newObject;
+		// Update objectData.value with the new object structure
+		objectData.value = newObject;
 
-		// Dispatch the updated objectVariable to parent
-		dispatch('update', objectVariable);
+		// Notify the parent of the updated object
+		onupdate(objectData);
 
 		return newObject;
 	};
@@ -154,14 +155,14 @@
 		<div class="flex gap-1 items-center">
 			<button
 				type="button"
-				on:click={addKeyValuePair}
-				class="btn btn-sm variant-outline-secondary flex gap-1"
+				onclick={addKeyValuePair}
+				class="btn btn-sm preset-outlined-secondary-500 flex gap-1"
 				><FontAwesomeIcon icon={faPlus} /><span class="sr-only">Add Key-Value Pair</span></button
 			>
 			<button
 				type="button"
-				on:click={removeKeyValuePair}
-				class="btn btn-sm variant-outline-primary flex gap-1"
+				onclick={removeKeyValuePair}
+				class="btn btn-sm preset-outlined-primary-500 flex gap-1"
 				><FontAwesomeIcon icon={faMinus} /><span class="sr-only">Remove Key-Value Pair</span
 				></button
 			>
@@ -188,7 +189,7 @@
 								type="text"
 								name="key"
 								bind:value={objectKeys[i]}
-								on:blur={(e) => {
+								onblur={(e) => {
 									updateKey(e, key, i);
 								}}
 								autocomplete="off"
@@ -204,7 +205,7 @@
 							name="type"
 							class="select px-2 py-1 mt-1 text-sm"
 							value={objectTypes[i]}
-							on:change={(e) => {
+							onchange={(e) => {
 								const newType = handleTypeChange(e, i);
 								if (newType === 'string') _object[key] = String(value);
 								if (newType === 'number') _object[key] = Number(value);
@@ -228,7 +229,7 @@
 									class="input px-2 py-1 text-sm"
 									type="text"
 									bind:value={objectValues[i]}
-									on:blur={(e) => {
+									onblur={(e) => {
 										updateValue(e, i, key);
 									}}
 									autocomplete="off"
@@ -244,7 +245,7 @@
 									class="input px-2 py-1 text-sm"
 									type="number"
 									bind:value={objectValues[i]}
-									on:blur={(e) => {
+									onblur={(e) => {
 										updateValue(e, i, key);
 									}}
 									autocomplete="off"
@@ -261,7 +262,7 @@
 										name="radio-direct-{i}"
 										bind:group={objectValues[i]}
 										value="true"
-										on:change={(e) => updateValue(e, i, key)}
+										onchange={(e) => updateValue(e, i, key)}
 									/>
 									<p>True</p>
 								</label>
@@ -272,7 +273,7 @@
 										name="radio-direct-{i}"
 										bind:group={objectValues[i]}
 										value="false"
-										on:change={(e) => updateValue(e, i, key)}
+										onchange={(e) => updateValue(e, i, key)}
 									/>
 									<p>False</p>
 								</label>
