@@ -51,7 +51,7 @@
 		<div class="mx-0 flex justify-between items-center">
 			<div class="lg:w-80 flex justify-start">
 				<a href="/" class="hover:text-gray-200 inline-block lg:hidden"
-					><h1>
+					>
 						<h1 class="flex gap-2 items-center">
 							<div class="w-5 h-5 flex items-center justify-center">
 								{#if iconsLoaded}
@@ -61,7 +61,7 @@
 							<span class="sm:hidden">CC</span>
 							<span class="hidden sm:inline-block">CODE CURIOUS</span>
 						</h1>
-					</h1></a
+					</a
 				>
 			</div>
 			<div>

@@ -3,6 +3,7 @@
 	import Parser from './Parser.svelte';
 	import { fetchLessonTitle } from '$lib/utils/fetchLessonTitle';
 	import { fade } from 'svelte/transition';
+	import NavButton from './NavButton.svelte';
 
 	// Expose the data prop to receive the data from the parent +page.svelte
 	export let data;
@@ -37,17 +38,22 @@
 <div class="p-4 mb-[48px] md:mb-[58px] lg:mb-0 md:overflow-x-scroll">
 	<div class="h-6 lg:h-8 mb-4">
 		{#if titlesLoaded}
-			<div in:fade={{ duration: 250 }}>
+			<div class="flex justify-between" in:fade={{ duration: 250 }}>
 				{#if data.prevLesson && previousTitle}
-					<a class="anchor" href={`/lesson/${data.prevLesson}`}>&lt;&lt; {previousTitle}</a>
+					<NavButton
+						styles={'anchor'}
+						path={data.prevLesson}
+						label={previousTitle}
+						arrows={'left'}
+					/>
 				{/if}
-				{#if data.prevLesson && previousTitle && data.nextLesson}
-					<span class="hidden lg:inline mx-2 text-zinc-700">|</span>
-				{/if}
-				{#if data.nextLesson && data.nextLesson !== 'lesson-1'}
-					<a class="anchor hidden lg:inline" href={`/lesson/${data.nextLesson}`}
-						>{nextTitle} &gt;&gt;</a
-					>
+				{#if data.nextLesson && nextTitle}
+					<NavButton 
+						styles={"anchor hidden lg:inline"}
+						path={data.nextLesson}
+						label={nextTitle}
+						arrows={"right"}
+					/>
 				{/if}
 			</div>
 		{/if}
@@ -66,17 +72,11 @@
 	</div>
 	<div>
 		{#if titlesLoaded}
-			<div in:fade={{ duration: 250 }} class="my-8">
+			<div in:fade={{ duration: 250 }} class="flex justify-end my-8">
 				{#if data.nextLesson === 'lesson-1'}
-					<p>
-						<a class="anchor" href={`/lesson/${data.nextLesson}`}
-							>Start the first lesson &gt;&gt;</a
-						>
-					</p>
-				{:else if data.nextLesson}
-					<p>
-						<a class="anchor" href={`/lesson/${data.nextLesson}`}>{nextTitle} &gt;&gt;</a>
-					</p>
+					<NavButton styles={"anchor"} path={data.nextLesson} label={"Start the first lesson"} arrows={"right"}/>
+				{:else if data.nextLesson && nextTitle}
+					<NavButton styles={"anchor"} path={data.nextLesson} label={nextTitle} arrows={"right"} />
 				{/if}
 			</div>
 		{/if}
