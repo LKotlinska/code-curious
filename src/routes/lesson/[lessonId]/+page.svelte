@@ -389,9 +389,9 @@
 				{#if $user}
 					<div class="flex items-center">
 						<div class="w-2 flex justify-center items-center" class:animate-icon={animateSnapIcon}>
-							<FontAwesomeIcon icon={faFloppyDisk} class="text-xl" />
+							<FontAwesomeIcon icon={faFloppyDisk} class="text-l" />
 						</div>
-						<ConfirmButton initiateText="Save" confirmText="Save" onConfirm={saveUserSnapshot} />
+						<button on:click={saveUserSnapshot} class="ml-3" type="button">Save</button>
 					</div>
 					<!-- Conditionally show "Load Snapshot" button if a user snapshot exists -->
 					{#if $userSnapshotAvailable}
@@ -400,9 +400,9 @@
 								class="w-2 flex justify-center items-center"
 								class:animate-icon={animateLoadIcon}
 							>
-								<FontAwesomeIcon icon={faFileCode} class="text-xl" />
+								<FontAwesomeIcon icon={faFileCode} class="text-l" />
 							</div>
-							<ConfirmButton initiateText="Load" confirmText="Load" onConfirm={loadUserSnapshot} />
+							<button on:click={loadUserSnapshot} class="ml-3" type="button">Load</button>
 						</div>
 					{/if}
 				{/if}

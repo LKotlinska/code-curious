@@ -95,24 +95,22 @@
 </script>
 
 <div class="min-h-[320px] md:min-h-[360px] lg:min-h-[400px] flex flex-col justify-start gap-2">
-	<section class="w-full flex justify-end items-center h-8">
-		<div class="flex items-center">
-			<ConfirmButton initiateText="Reset Editor" confirmText="Reset" onConfirm={resetEditor} />
-			<!-- Run button, only show if currentPanel is 2, that is, not on desktop -->
-			<button
-				on:click={runner}
-				type="button"
-				disabled={$isRunning}
-				class="btn btn-sm bg-primary-900 flex gap-2 {$currentPanel !== 2 ? 'hidden' : ''} lg:hidden"
-			>
-				{#if $isRunning}
-					<FontAwesomeIcon icon={faCircleExclamation} /> Running
-				{/if}
-				{#if !$isRunning}
-					<FontAwesomeIcon icon={faRotateRight} /> Run
-				{/if}
-			</button>
-		</div>
+	<section class="w-full flex justify-between items-center h-8">
+		<ConfirmButton initiateText="Reset Editor" confirmText="Reset" onConfirm={resetEditor} />
+		<!-- Run button, only show if currentPanel is 2, that is, not on desktop -->
+		<button
+			on:click={runner}
+			type="button"
+			disabled={$isRunning}
+			class="btn btn-sm bg-primary-900 flex gap-2 {$currentPanel !== 2 ? 'hidden' : ''} lg:hidden"
+		>
+			{#if $isRunning}
+				<FontAwesomeIcon icon={faCircleExclamation} /> Running
+			{/if}
+			{#if !$isRunning}
+				<FontAwesomeIcon icon={faRotateRight} /> Run
+			{/if}
+		</button>
 	</section>
 	<hr class="opacity-50" />
 
