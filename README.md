@@ -76,6 +76,13 @@ Please refer to `DATABASE.md` for more detailed `lessons` table example.
 | lesson_slug   | text  | Lesson slug (foreign key)                |
 | snapshot_data | jsonb | Saved user-created code, lesson-specific |
 
+**Constraints required:** Add a composite unique constraint on (`user_id`, `lesson_slug`), as this table is upserted via `onConflict: 'user_id,lesson_slug'`, so Postgres needs a real unique constraint to resolve conflicts:
+
+```
+alter table snapshots
+add constraint snapshots_user_lesson_unique unique (user_id, lesson_slug);
+```
+
 ### 6. Run the Development Server
 
 Once your database is ready, start the development server:
