@@ -100,7 +100,7 @@
 			}}
 			class="px-4 flex flex-col gap-4 items-start"
 		>
-			<div class="flex gap-4">
+			<div class="flex gap-4 flex-col sm:flex-row w-full">
 				<!-- Variable select -->
 				<div class="label">
 					<span>Variable</span>
