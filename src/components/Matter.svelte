@@ -16,13 +16,18 @@
 	let matterContainer: HTMLElement | null = $state(null);
 
 	interface Props {
-		// Matter.js instance, needs to be exported to be used by actions.ts
-		matterInstance?: MatterInstance | null;
 		// Expose the data prop to receive the data from the parent +page.svelte
 		data: any;
 	}
 
-	let { matterInstance = $bindable(null), data = $bindable() }: Props = $props();
+	let { data }: Props = $props();
+
+	// The Matter.js engine/runner handle. Uses $state.raw (not $bindable/$state) so reassigning
+	// it still triggers effects that depend on it, but Svelte does NOT deep-proxy the
+	// engine/world/bodies graph inside - matter-js manages that internally with its own mutable
+	// arrays and strict reference-equality lookups (e.g. Composite.removeBody uses indexOf),
+	// which silently break (state_proxy_equality_mismatch) if bodies get wrapped in proxies.
+	let matterInstance = $state.raw<MatterInstance | null>(null);
 
 	// Only subscribe to matterActionOutput when isRunning is true
 
@@ -78,16 +83,16 @@
 				matterContainer,
 				{ width: 450, height: 680 },
 				scale,
-				(data.scene = data.scene ? data.scene : null),
+				data.scene ? data.scene : null,
 			);
 			matterInstanceStore.set(matterInstance); // Set the store with the Matter instance
 		}
 	};
 
 	// Reinitialize Matter.js whenever the lesson `data` changes.
-	// `reinitMatterJs` reads and writes other reactive state (matterInstance, data.scene,
-	// isRunning); `untrack` keeps those out of this effect's dependencies so it only re-runs
-	// when `data` or `matterContainer` actually change - otherwise it would loop forever.
+	// `reinitMatterJs` reads and writes other reactive state (matterInstance, isRunning);
+	// `untrack` keeps those out of this effect's dependencies so it only re-runs when `data`
+	// or `matterContainer` actually change - otherwise it would loop forever.
 	$effect(() => {
 		data;
 		matterContainer;
