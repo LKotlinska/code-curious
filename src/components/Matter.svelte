@@ -33,15 +33,24 @@
 		}
 	});
 
-	// Reactively control Matter.js based on the running state
+	// Reactively control Matter.js based on the running state.
+	// `resetBodies`/`startMatter` both read and write nested state on `matterInstance`
+	// (e.g. World.add/remove mutate `engine.world.bodies`, which Composite.allBodies also
+	// reads) - since `matterInstance` is reactive, doing that untracked keeps this effect's
+	// dependencies limited to `$isRunning`/`matterInstance` themselves, otherwise it retriggers
+	// itself every tick and blows the update-depth guard.
 	$effect(() => {
-		if ($isRunning && matterInstance) {
-			resetBodies(matterInstance);
-			//resetBodies(matterInstance, (data.scene = data.scene ? data.scene : null));
-			startMatter(matterInstance.runner, matterInstance.engine);
-		} else if (!$isRunning && matterInstance) {
-			stopMatter(matterInstance.runner);
-		}
+		const running = $isRunning;
+		const instance = matterInstance;
+		untrack(() => {
+			if (running && instance) {
+				resetBodies(instance);
+				//resetBodies(instance, (data.scene = data.scene ? data.scene : null));
+				startMatter(instance.runner, instance.engine);
+			} else if (!running && instance) {
+				stopMatter(instance.runner);
+			}
+		});
 	});
 
 	// Scale factor!

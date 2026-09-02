@@ -57,14 +57,14 @@
 		if (editMode) {
 			// Convert string to boolean and update variable value
 			variable.value = _boolString === 'true';
-			$snapshot = _snapshot.map((v) => (v.id === variable.id ? variable : v));
+			$snapshot = _snapshot.map((v) => (v.id === variable.id ? $state.snapshot(variable) : v));
 			onclose();
 			return;
 		} else {
 			// Convert string to boolean and update variable value
 			variable.value = _boolString === 'true';
 			// Add variable to snapshot store
-			$snapshot = [..._snapshot, variable];
+			$snapshot = [..._snapshot, $state.snapshot(variable)];
 		}
 		onclose();
 	};

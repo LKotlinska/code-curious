@@ -89,10 +89,10 @@
 		// Update snapshot store
 		if (!editMode) {
 			// Add new variable to snapshot store, if not in edit mode
-			$snapshot = [..._snapshot, variable];
+			$snapshot = [..._snapshot, $state.snapshot(variable)];
 		} else {
 			// Update existing variable in snapshot store
-			$snapshot = _snapshot.map((v) => (v.id === variable.id ? variable : v));
+			$snapshot = _snapshot.map((v) => (v.id === variable.id ? $state.snapshot(variable) : v));
 		}
 		onclose();
 	};

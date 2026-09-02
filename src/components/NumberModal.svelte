@@ -50,12 +50,12 @@
 		if (variable.name === '') variable.name = 'new number';
 		if (!variable.value) variable.value = 0;
 		if (editMode) {
-			$snapshot = _snapshot.map((v) => (v.id === variable.id ? variable : v));
+			$snapshot = _snapshot.map((v) => (v.id === variable.id ? $state.snapshot(variable) : v));
 			onclose();
 			return;
 		} else {
 			// Add variable to snapshot store
-			$snapshot = [..._snapshot, variable];
+			$snapshot = [..._snapshot, $state.snapshot(variable)];
 		}
 		onclose();
 	};

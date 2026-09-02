@@ -121,7 +121,7 @@
 	// RUNNER function to run the user's code
 	async function runner() {
 		clearConsole(); // Clear the console before running the code
-		$actionSnapshot = structuredClone($snapshot); // Deep clone $snapshot
+		$actionSnapshot = $state.snapshot($snapshot); // Deep clone $snapshot, unwrapping any $state proxies
 		isRunning.set(true); // Set the running state to true at the start
 		indicateRunning(); // Indicate that the code is running in the console
 		for (const block of $actionSnapshot) {

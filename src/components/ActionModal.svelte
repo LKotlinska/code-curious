@@ -66,11 +66,11 @@
 
 	const onSave = () => {
 		if (editMode) {
-			$snapshot = _snapshot.map((a) => (a.id === action.id ? action : a));
+			$snapshot = _snapshot.map((a) => (a.id === action.id ? $state.snapshot(action) : a));
 			onclose();
 			return;
 		} else {
-			$snapshot = [..._snapshot, action];
+			$snapshot = [..._snapshot, $state.snapshot(action)];
 		}
 		onclose();
 	};
