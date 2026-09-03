@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { user } from '$lib/auth';
-	import { supabase } from '$lib/supabaseClient';
-	import { writable } from 'svelte/store';
 	import StringModal from './StringModal.svelte';
 	import NumberModal from './NumberModal.svelte';
 	import BooleanModal from './BooleanModal.svelte';
@@ -16,25 +13,32 @@
 
 	import {
 		faBolt,
+		faCircleExclamation,
 		faEye,
-		faFileCode,
-		faFloppyDisk,
 		faPlus,
+		faRotateRight,
 	} from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 
 	import { page } from '$app/stores';
-	import { resetMatterFlag } from '$lib/stores/store';
+	import { currentPanel, isRunning, resetMatterFlag } from '$lib/stores/store';
 	import { snapshot, saveSnapshot, loadSnapshot } from '$lib/stores/snapshots';
 	import { beforeNavigate } from '$app/navigation';
 
 	let { data } = $props();
-	const userSnapshot = writable<any[]>([]);
+	export let runner: () => Promise<void>;
 
 	let lessonSlug = $derived($page.params.lessonId);
 
-	let animateSnapIcon = $state(false);
-	let animateLoadIcon = $state(false);
+	// Subscribe to the lesson slug from the page store
+	$: lessonSlug = $page.params.lessonId;
+
+	// Load snapshot data for the current lesson when the component mounts or lessonSlug changes
+	$: {
+		if (lessonSlug) {
+			loadSnapshot(lessonSlug, data.snapshot);
+		}
+	}
 
 	// Save the current snapshot before navigating to another route
 	beforeNavigate(() => {
@@ -79,103 +83,25 @@
 		// Toggle the flag to reset the Matter.js simulation
 		resetMatterFlag.update((flag) => (flag = true));
 	};
-
-	const userSnapshotAvailable = writable(false); // Store to track if a snapshot exists
-
-	const fetchUserSnapshot = async () => {
-		if ($user) {
-			const { data: userSnapshotData, error } = await supabase
-				.from('snapshots')
-				.select('snapshot_data')
-				.eq('user_id', $user.id)
-				.eq('lesson_slug', lessonSlug);
-
-			if (error) {
-				console.error('Error fetching snapshot:', error);
-			} else if (userSnapshotData && userSnapshotData.length > 0) {
-				userSnapshot.set(userSnapshotData[0].snapshot_data); // Load the snapshot data
-				userSnapshotAvailable.set(true); // Set flag to indicate snapshot availability
-			} else {
-				userSnapshotAvailable.set(false); // No snapshot available
-			}
-		}
-	};
-
-	async function loadUserSnapshot() {
-		if ($user && $userSnapshotAvailable) {
-			//$snapshot = $userSnapshot; // Set current editor state to the snapshot data
-			snapshot.set($userSnapshot); // Set current editor state to the snapshot data
-			animateLoadIcon = true; // Trigger the animation
-		}
-	}
-
-	async function saveUserSnapshot() {
-		if ($user && $snapshot) {
-			const { error } = await supabase.from('snapshots').upsert(
-				{
-					user_id: $user.id,
-					lesson_slug: lessonSlug,
-					snapshot_data: $snapshot,
-				},
-				{ onConflict: 'user_id,lesson_slug' },
-			);
-			if (error) console.error('Error saving snapshot:', error);
-			// Fetch the user snapshot data again
-			fetchUserSnapshot();
-			animateSnapIcon = true; // Trigger the animation
-		}
-	}
-
-	// Load snapshot data for the current lesson when the component mounts or lessonSlug changes
-	$effect(() => {
-		if (lessonSlug) {
-			loadSnapshot(lessonSlug, data.snapshot);
-			fetchUserSnapshot();
-		}
-	});
-	// Toggle the animation class when animateSnapIcon changes
-	$effect(() => {
-		if (animateSnapIcon) {
-			setTimeout(() => {
-				animateSnapIcon = false; // Reset the animation after it plays
-			}, 500); // Match the duration of the CSS animation
-		}
-	});
-	// Toggle the animation class when animateLoadIcon changes
-	$effect(() => {
-		if (animateLoadIcon) {
-			setTimeout(() => {
-				animateLoadIcon = false; // Reset the animation after it plays
-			}, 500); // Match the duration of the CSS animation
-		}
-	});
 </script>
 
 <div class="min-h-[320px] md:min-h-[360px] lg:min-h-[400px] flex flex-col justify-start gap-2">
 	<section class="w-full flex justify-between items-center h-8">
-		<div class="ml-2 flex items-center gap-4">
-			{#if $user}
-				<div class="flex items-center">
-					<div class="w-2 flex justify-center items-center" class:animate-icon={animateSnapIcon}>
-						<FontAwesomeIcon icon={faFloppyDisk} class="text-xl" />
-					</div>
-					<ConfirmButton initiateText="Save" confirmText="Save" onConfirm={saveUserSnapshot} />
-				</div>
-				<!-- Conditionally show "Load Snapshot" button if a user snapshot exists -->
-				{#if $userSnapshotAvailable}
-					<div class="flex items-center">
-						<div class="w-2 flex justify-center items-center" class:animate-icon={animateLoadIcon}>
-							<FontAwesomeIcon icon={faFileCode} class="text-xl" />
-						</div>
-						<ConfirmButton initiateText="Load" confirmText="Load" onConfirm={loadUserSnapshot} />
-					</div>
-				{/if}
+		<ConfirmButton initiateText="Reset Editor" confirmText="Reset" onConfirm={resetEditor} />
+		<!-- Run button, only show if currentPanel is 2, that is, not on desktop -->
+		<button
+			on:click={runner}
+			type="button"
+			disabled={$isRunning}
+			class="btn btn-sm bg-primary-900 flex gap-2 {$currentPanel !== 2 ? 'hidden' : ''} lg:hidden"
+		>
+			{#if $isRunning}
+				<FontAwesomeIcon icon={faCircleExclamation} /> Running
 			{/if}
-		</div>
-
-		<div class="flex items-center">
-			<ConfirmButton initiateText="Reset Editor" confirmText="Reset" onConfirm={resetEditor} />
-		</div>
+			{#if !$isRunning}
+				<FontAwesomeIcon icon={faRotateRight} /> Run
+			{/if}
+		</button>
 	</section>
 	<hr class="opacity-50" />
 
@@ -318,26 +244,3 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-	/* Scaling animation */
-	.animate-icon {
-		animation: pop-in 500ms ease-out forwards;
-	}
-
-	@keyframes pop-in {
-		0% {
-			transform: scale(1);
-		}
-		50% {
-			transform: scale(1.5);
-		}
-		90% {
-			transform: scale(0.8);
-		}
-
-		100% {
-			transform: scale(1);
-		}
-	}
-</style>
