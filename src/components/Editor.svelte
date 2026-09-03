@@ -25,20 +25,21 @@
 	import { snapshot, saveSnapshot, loadSnapshot } from '$lib/stores/snapshots';
 	import { beforeNavigate } from '$app/navigation';
 
-	let { data } = $props();
-	export let runner: () => Promise<void>;
+	interface Props {
+		data: any;
+		runner: () => Promise<void>;
+	}
+
+	let { data, runner }: Props = $props();
 
 	let lessonSlug = $derived($page.params.lessonId);
 
-	// Subscribe to the lesson slug from the page store
-	$: lessonSlug = $page.params.lessonId;
-
 	// Load snapshot data for the current lesson when the component mounts or lessonSlug changes
-	$: {
+	$effect(() => {
 		if (lessonSlug) {
 			loadSnapshot(lessonSlug, data.snapshot);
 		}
-	}
+	});
 
 	// Save the current snapshot before navigating to another route
 	beforeNavigate(() => {
@@ -90,7 +91,7 @@
 		<ConfirmButton initiateText="Reset Editor" confirmText="Reset" onConfirm={resetEditor} />
 		<!-- Run button, only show if currentPanel is 2, that is, not on desktop -->
 		<button
-			on:click={runner}
+			onclick={runner}
 			type="button"
 			disabled={$isRunning}
 			class="btn btn-sm bg-primary-900 flex gap-2 {$currentPanel !== 2 ? 'hidden' : ''} lg:hidden"

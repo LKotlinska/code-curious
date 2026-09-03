@@ -67,8 +67,8 @@
 	// User snapshot save/load state for the Editor's Save/Load buttons
 	const userSnapshot = writable<any[]>([]);
 	const userSnapshotAvailable = writable(false); // Store to track if a snapshot exists
-	let animateSnapIcon = false;
-	let animateLoadIcon = false;
+	let animateSnapIcon = $state(false);
+	let animateLoadIcon = $state(false);
 
 	const fetchUserSnapshot = async () => {
 		if ($user) {
@@ -114,18 +114,22 @@
 	}
 
 	// Toggle the animation class when animateSnapIcon changes
-	$: if (animateSnapIcon) {
-		setTimeout(() => {
-			animateSnapIcon = false; // Reset the animation after it plays
-		}, 500); // Match the duration of the CSS animation
-	}
+	$effect(() => {
+		if (animateSnapIcon) {
+			setTimeout(() => {
+				animateSnapIcon = false; // Reset the animation after it plays
+			}, 500); // Match the duration of the CSS animation
+		}
+	});
 
 	// Toggle the animation class when animateLoadIcon changes
-	$: if (animateLoadIcon) {
-		setTimeout(() => {
-			animateLoadIcon = false; // Reset the animation after it plays
-		}, 500); // Match the duration of the CSS animation
-	}
+	$effect(() => {
+		if (animateLoadIcon) {
+			setTimeout(() => {
+				animateLoadIcon = false; // Reset the animation after it plays
+			}, 500); // Match the duration of the CSS animation
+		}
+	});
 
 	const fetchLesson = async () => {
 		const { data, error } = await supabase
@@ -173,9 +177,11 @@
 	});
 
 	// Fetch the user's saved snapshot for the current lesson when it's available or changes
-	$: if (lessonId) {
-		fetchUserSnapshot();
-	}
+	$effect(() => {
+		if (lessonId) {
+			fetchUserSnapshot();
+		}
+	});
 
 	// Panel width logic
 	let panel1Width = $state('lg:w-1/3'); // Initially 1/3 of the screen width
@@ -396,7 +402,7 @@
 						<div class="w-2 flex justify-center items-center" class:animate-icon={animateSnapIcon}>
 							<FontAwesomeIcon icon={faFloppyDisk} class="text-l" />
 						</div>
-						<button on:click={saveUserSnapshot} class="ml-3" type="button">Save</button>
+						<button onclick={saveUserSnapshot} class="ml-3" type="button">Save</button>
 					</div>
 					<!-- Conditionally show "Load Snapshot" button if a user snapshot exists -->
 					{#if $userSnapshotAvailable}
@@ -407,7 +413,7 @@
 							>
 								<FontAwesomeIcon icon={faFileCode} class="text-l" />
 							</div>
-							<button on:click={loadUserSnapshot} class="ml-3" type="button">Load</button>
+							<button onclick={loadUserSnapshot} class="ml-3" type="button">Load</button>
 						</div>
 					{/if}
 				{/if}
