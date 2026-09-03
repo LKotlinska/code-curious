@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, untrack } from 'svelte';
 	import { matterActionOutput } from '$lib/utils/actions'; // Import matterActionOutput store
 	import {
 		initMatterJS,
@@ -13,12 +13,21 @@
 	import { actionSnapshot } from '$lib/utils/actions';
 	import { isRunning, matterInstanceStore, resetMatterFlag } from '$lib/stores/store';
 
-	// Matter.js instance, needs to be exported to be used by actions.ts
-	export let matterInstance: MatterInstance | null = null;
-	let matterContainer: HTMLElement | null = null;
+	let matterContainer: HTMLElement | null = $state(null);
 
-	// Expose the data prop to receive the data from the parent +page.svelte
-	export let data;
+	interface Props {
+		// Expose the data prop to receive the data from the parent +page.svelte
+		data: any;
+	}
+
+	let { data }: Props = $props();
+
+	// The Matter.js engine/runner handle. Uses $state.raw (not $bindable/$state) so reassigning
+	// it still triggers effects that depend on it, but Svelte does NOT deep-proxy the
+	// engine/world/bodies graph inside - matter-js manages that internally with its own mutable
+	// arrays and strict reference-equality lookups (e.g. Composite.removeBody uses indexOf),
+	// which silently break (state_proxy_equality_mismatch) if bodies get wrapped in proxies.
+	let matterInstance = $state.raw<MatterInstance | null>(null);
 
 	// Only subscribe to matterActionOutput when isRunning is true
 
@@ -29,17 +38,28 @@
 		}
 	});
 
-	// Reactively control Matter.js based on the running state
-	$: if ($isRunning && matterInstance) {
-		resetBodies(matterInstance);
-		//resetBodies(matterInstance, (data.scene = data.scene ? data.scene : null));
-		startMatter(matterInstance.runner, matterInstance.engine);
-	} else if (!$isRunning && matterInstance) {
-		stopMatter(matterInstance.runner);
-	}
+	// Reactively control Matter.js based on the running state.
+	// `resetBodies`/`startMatter` both read and write nested state on `matterInstance`
+	// (e.g. World.add/remove mutate `engine.world.bodies`, which Composite.allBodies also
+	// reads) - since `matterInstance` is reactive, doing that untracked keeps this effect's
+	// dependencies limited to `$isRunning`/`matterInstance` themselves, otherwise it retriggers
+	// itself every tick and blows the update-depth guard.
+	$effect(() => {
+		const running = $isRunning;
+		const instance = matterInstance;
+		untrack(() => {
+			if (running && instance) {
+				resetBodies(instance);
+				//resetBodies(instance, (data.scene = data.scene ? data.scene : null));
+				startMatter(instance.runner, instance.engine);
+			} else if (!running && instance) {
+				stopMatter(instance.runner);
+			}
+		});
+	});
 
 	// Scale factor!
-	let scale: number = 0.8;
+	let scale: number = $state(0.8);
 	let innerWidth: number;
 
 	// Helper to clean up the current Matter.js instance
@@ -48,12 +68,9 @@
 			stopMatter(matterInstance.runner);
 			Matter.Engine.clear(matterInstance.engine);
 			Matter.World.clear(matterInstance.engine.world, false); // Clear all bodies including static ones
-			// Remove the canvas element
+			// Remove any canvas elements the renderer left behind
 			const container = document.querySelector('#matterContainer');
-			const canvas = container?.querySelector('canvas');
-			if (canvas) {
-				canvas.remove(); // Ensure canvas is removed
-			}
+			container?.querySelectorAll('canvas').forEach((canvas) => canvas.remove());
 		}
 	}
 
@@ -66,27 +83,43 @@
 				matterContainer,
 				{ width: 450, height: 680 },
 				scale,
-				(data.scene = data.scene ? data.scene : null),
+				data.scene ? data.scene : null,
 			);
 			matterInstanceStore.set(matterInstance); // Set the store with the Matter instance
 		}
 	};
 
-	// Reinitialize Matter.js whenever the lesson `data` changes
-	$: if (data && matterContainer) {
-		reinitMatterJs();
-	}
+	// Reinitialize Matter.js whenever the lesson `data` changes.
+	// `reinitMatterJs` reads and writes other reactive state (matterInstance, isRunning);
+	// `untrack` keeps those out of this effect's dependencies so it only re-runs when `data`
+	// or `matterContainer` actually change - otherwise it would loop forever.
+	$effect(() => {
+		data;
+		matterContainer;
+		untrack(() => {
+			if (data && matterContainer) {
+				reinitMatterJs();
+			}
+		});
+	});
 
 	// Reinitialize Matter.js whenever the flag is changed
-	$: if ($resetMatterFlag) {
-		reinitMatterJs();
-		resetMatterFlag.update((flag) => (flag = false)); // Reset the flag
-	}
+	$effect(() => {
+		if ($resetMatterFlag) {
+			untrack(() => reinitMatterJs());
+			resetMatterFlag.set(false); // Reset the flag
+		}
+	});
 
 	// Reinitialize Matter.js whenever the scale changes
-	$: if (scale) {
-		reinitMatterJs();
-	}
+	$effect(() => {
+		scale;
+		untrack(() => {
+			if (scale) {
+				reinitMatterJs();
+			}
+		});
+	});
 
 	function updateScale(innerWidth: number) {
 		if (innerWidth <= 400) {
@@ -118,14 +151,10 @@
 			updateScale(innerWidth);
 		});
 
+		// `reinitMatterJs` cleans up any instance the reactive effects already created,
+		// so we never end up with a stray second canvas.
 		if (matterContainer) {
-			matterInstance = initMatterJS(
-				matterContainer,
-				{ width: 450, height: 680 },
-				scale,
-				(data.scene = data.scene ? data.scene : null),
-			);
-			matterInstanceStore.set(matterInstance); // Set the store with the Matter instance
+			reinitMatterJs();
 		}
 	});
 
@@ -138,6 +167,3 @@
 <section class="w-full flex justify-center">
 	<div id="matterContainer" bind:this={matterContainer}></div>
 </section>
-
-<style>
-</style>

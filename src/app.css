@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton-svelte';
+@import '@skeletonlabs/skeleton/themes/modern';
+
+@plugin '@tailwindcss/forms';
+
+/* The app forces dark mode via `class="dark"` on <html> (see app.html),
+   so map Tailwind's `dark:` variant to that class instead of the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Skeleton v2 -> v5: `.card` compatibility shim.
+   Skeleton v5's `.card` is a bare border-radius utility - the surface fill,
+   header/footer padding and hover treatment that v2 baked in are gone. The
+   app leans on those in ~30 places, so recreate them here with v5 tokens
+   (the `variant-*` / `.alert` utilities were migrated to v5 presets in the
+   markup and are intentionally NOT shimmed).
+--------------------------------------------------------------------------- */
+@layer components {
+	.card {
+		background-color: var(--color-surface-100-900);
+		color: var(--color-surface-contrast-100-900);
+		box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-surface-950-50) 8%, transparent);
+	}
+
+	.card-header {
+		padding: 1rem;
+		padding-bottom: 0;
+	}
+	.card-footer {
+		padding: 1rem;
+		padding-top: 0;
+	}
+
+	.card-hover:hover {
+		filter: brightness(110%);
+	}
+
+	.text-token {
+		color: var(--color-surface-contrast-100-900);
+	}
+}
+
+/* modern theme */
+@font-face {
+	font-family: 'Quicksand';
+	src: url('/fonts/Quicksand.ttf');
+	font-display: swap;
+}
+
+/* tutorial markdown */
+.markdown p {
+	margin: 1rem 0;
+}
+
+.markdown h4 {
+	font-size: 1.25rem;
+	margin: 1rem 0 0 0;
+}
+
+.markdown ul {
+	list-style-type: none;
+	padding-left: 0;
+}
+
+.markdown li:before {
+	content: '\2022\00a0';
+	color: white;
+}
+
+.markdown li {
+	margin-left: 1rem;
+	display: flex;
+	align-items: center;
+}
+
+.markdown .flex-auto {
+	flex-grow: 1;
+}
+
+.markdown code {
+	background-color: #414141;
+	border-radius: 0.25rem;
+	padding: 0.15rem 0.3rem;
+	font-size: 0.9rem;
+}

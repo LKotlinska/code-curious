@@ -2,7 +2,7 @@
 	import { supabase } from '$lib/supabaseClient';
 	import { user, signOut } from '$lib/auth';
 	import { onMount } from 'svelte';
-	import { ProgressBar } from '@skeletonlabs/skeleton';
+	import { Progress } from '@skeletonlabs/skeleton-svelte';
 	import { goto } from '$app/navigation';
 	import { writable } from 'svelte/store';
 	import { fetchLesson } from '$lib/utils/fetchLesson';
@@ -36,12 +36,12 @@
 	let msgTimeout: ReturnType<typeof setTimeout> | undefined; // Declare a timeout for clearing msg
 	let errorMsgTimeout: ReturnType<typeof setTimeout> | undefined; // Declare a timeout for clearing errorMsg
 
-	let displayName = '';
+	let displayName = $state('');
 	let displayNameError = '';
 
-	let loading = true;
-	let authLoading = true;
-	let hasError = false;
+	let loading = $state(true);
+	let authLoading = $state(true);
+	let hasError = $state(false);
 
 	onMount(async () => {
 		try {
@@ -177,18 +177,22 @@
 		}
 	}
 
-	$: if (!$user && !authLoading) {
-		goto('/sign-in');
-	}
+	$effect(() => {
+		if (!$user && !authLoading) {
+			goto('/sign-in');
+		}
+	});
 </script>
 
 <div class="h-full w-full flex flex-col items-center">
 	<div class="card mt-0 sm:mt-4 md:mt-12 md:w-1/2 rounded-none sm:rounded-2xl">
 		{#if hasError}
 			<section class="w-full p-4 flex justify-center items-start">
-				<aside class="alert variant-ghost-warning mt-4">
+				<aside
+					class="mt-4 flex flex-col items-start gap-2 rounded-lg border border-warning-500 bg-warning-500/20 p-4"
+				>
 					<div><FontAwesomeIcon icon={faExclamationTriangle} /></div>
-					<div class="alert-message">
+					<div class="flex-1">
 						<p>Failed to load content. Please try again later.</p>
 					</div>
 				</aside>
@@ -197,7 +201,11 @@
 			{#if authLoading || loading}
 				<header class="card-header">
 					<div class="w-full p-4">
-						<ProgressBar />
+						<Progress value={null}>
+							<Progress.Track>
+								<Progress.Range />
+							</Progress.Track>
+						</Progress>
 					</div>
 				</header>
 				<section class="p-4">
@@ -211,7 +219,12 @@
 				<!-- USER -->
 				<section class="p-4 flex flex-col items-start gap-4">
 					<h3 class="text-xl">User</h3>
-					<form on:submit|preventDefault={updateDisplayName}>
+					<form
+						onsubmit={(e) => {
+							e.preventDefault();
+							updateDisplayName();
+						}}
+					>
 						<label class="label">
 							<span>Username</span>
 							<div class="flex">
@@ -224,7 +237,7 @@
 									autocomplete="off"
 									maxlength="25"
 								/>
-								<button type="submit" class="btn-icon bg-initial ml-6">
+								<button type="submit" class="btn-icon bg-initial ml-6 gap-2">
 									<FontAwesomeIcon icon={faFloppyDisk} />
 									<span>Save <span class="sr-only">Username</span></span>
 								</button>
@@ -245,10 +258,10 @@
 					<nav class="list-nav">
 						<ul>
 							{#each $lessons as lesson}
-								<li class="flex items-center">
-									<a href={`/lesson/${lesson.slug}`}>
+								<li class="flex items-center m-2 justify-between">
+									<a class="flex items-center gap-2" href={`/lesson/${lesson.slug}`}>
+										<span>{lesson.title} </span>
 										<span class="badge"><FontAwesomeIcon icon={faArrowRight} /></span>
-										<span class="flex items-center gap-4">{lesson.title} </span>
 									</a>
 									<!-- Check if there is a user snapshot saved for the current lesson -->
 									{#if $snapshots.find((snapshot) => snapshot.lesson_slug === lesson.slug)}
@@ -256,7 +269,7 @@
 											initiateText="Snapshot"
 											initiateClass="btn btn-sm flex items-center gap-2"
 											confirmText="Delete"
-											confirmClass="btn btn-sm variant-outline-warning flex items-center gap-2"
+											confirmClass="btn btn-sm preset-outlined-warning-500 flex items-center gap-2"
 											onConfirm={() => deleteSnapshot(lesson.slug)}
 										></ConfirmButton>
 									{/if}
@@ -271,7 +284,7 @@
 				</section>
 				<hr class="opacity-50 mb-4" />
 				<footer class="card-footer">
-					<button class="btn bg-primary-700 flex gap-2" type="button" on:click={signOut}
+					<button class="btn bg-primary-700 flex gap-2" type="button" onclick={signOut}
 						><FontAwesomeIcon icon={faRightFromBracket} />Sign Out</button
 					>
 				</footer>
@@ -282,17 +295,21 @@
 	</div>
 	<!-- Display the message if it exists -->
 	{#if $msg}
-		<aside class="alert variant-ghost-success mt-4">
+		<aside
+			class="mt-4 flex flex-col items-start gap-2 rounded-lg border border-success-500 bg-success-500/20 p-4"
+		>
 			<div><FontAwesomeIcon icon={faExclamationTriangle} /></div>
-			<div class="alert-message">
+			<div class="flex-1">
 				<p>{$msg}</p>
 			</div>
 		</aside>
 	{/if}
 	{#if $errorMsg}
-		<aside class="alert variant-ghost-error mt-4">
+		<aside
+			class="mt-4 flex flex-col items-start gap-2 rounded-lg border border-error-500 bg-error-500/20 p-4"
+		>
 			<div><FontAwesomeIcon icon={faExclamationTriangle} /></div>
-			<div class="alert-message">
+			<div class="flex-1">
 				<p>{$errorMsg}</p>
 			</div>
 		</aside>

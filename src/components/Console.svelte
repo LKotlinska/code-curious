@@ -14,7 +14,11 @@
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
-	export let expanded: boolean = false;
+	interface Props {
+		expanded?: boolean;
+	}
+
+	let { expanded = false }: Props = $props();
 
 	// Function to retrieve and return any selected variable from snapshot
 	const getVariableToLog = (log: Log): any => {
@@ -23,8 +27,8 @@
 	};
 
 	// Function to scroll the console container to the bottom
-	let consoleScrollContainer: HTMLDivElement | null = null;
-	let consoleContainer: HTMLDivElement | null = null;
+	let consoleScrollContainer: HTMLDivElement | null = $state(null);
+	let consoleContainer: HTMLDivElement | null = $state(null);
 
 	function scrollToBottom() {
 		// Scroll to bottom of console container, after short delay
@@ -36,11 +40,11 @@
 		}, 100);
 	}
 
-	$: {
+	$effect(() => {
 		if ($consoleOutput || !expanded) {
 			scrollToBottom();
 		}
-	}
+	});
 </script>
 
 <div
@@ -112,7 +116,7 @@
 		{/each}
 		{#if expanded && $consoleOutput.length > 0}
 			<div class="flex justify-end">
-				<button in:fade={{ duration: 300 }} class="btn" on:click={clearConsole}
+				<button in:fade={{ duration: 300 }} class="btn" onclick={clearConsole}
 					><FontAwesomeIcon icon={faTrashCan} /><span class="sr-only">Clear Console</span></button
 				>
 			</div>

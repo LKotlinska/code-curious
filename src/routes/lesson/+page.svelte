@@ -9,7 +9,7 @@
 			<h3 class="h3" data-toc-ignore>Looks like you're lost!</h3>
 			<article>
 				<p>
-					The lesson starts over at the <a class="anchor" href="/lesson/lesson-1">Lesson</a> page.
+					The lesson starts over at the <span class="anchor">Lesson</span> page.
 				</p>
 			</article>
 		</div>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { currentPanel } from '$lib/stores/store';
 	import { page } from '$app/stores'; // Store for dynamic routing
-	import { afterUpdate, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
 	import { fade } from 'svelte/transition';
 	import { writable } from 'svelte/store';
@@ -11,7 +11,7 @@
 	import { actionSnapshot } from '$lib/utils/actions';
 	import { clearConsole, consoleOutput, logToConsole } from '$lib/utils/consoleActions';
 	import { waitForStability } from '$lib/utils/actions';
-	import { ProgressBar } from '@skeletonlabs/skeleton';
+	import { Progress } from '@skeletonlabs/skeleton-svelte';
 
 	import { executeAction } from '$lib/utils/actions';
 	import { supabase } from '$lib/supabaseClient';
@@ -42,9 +42,9 @@
 	import ConfirmButton from '../../../components/ConfirmButton.svelte';
 	import type { LessonData, Log } from '$lib/types';
 
-	//let lessonId = data.lessonId; // Use the lessonId passed from the load function
-	let lessonId = $page.params.lessonId; // Use the lessonId from the route params
-	let lessonData: LessonData = {
+	// Use the lessonId from the route params
+	let lessonId = $derived($page.params.lessonId);
+	let lessonData: LessonData = $state({
 		tutorial: {
 			title: '',
 			content: [''],
@@ -57,11 +57,11 @@
 		playfiled: {
 			scene: '',
 		},
-	};
+	});
 
 	// Flags
-	let showTutorial = false; // Flag to show tutorial after scrolling
-	let hasError = false;
+	let showTutorial = $state(false); // Flag to show tutorial after scrolling
+	let hasError = $state(false);
 	let navigating = true;
 
 	// User snapshot save/load state for the Editor's Save/Load buttons
@@ -163,16 +163,14 @@
 			lessonData.playfiled = {};
 		}
 	};
-	fetchLesson();
 
-	// Reactive declaration to update when the route changes
-	$: if ($page.params.lessonId !== lessonId) {
-		lessonId = $page.params.lessonId;
-		//lessonData = data.lessonData; // Reassign the new lessonData when the route changes
+	// Fetch lesson content (and reset the view) on mount and whenever the route param changes
+	$effect(() => {
+		lessonId;
 		clearConsole(); // Clear the console when the route changes
 		fetchLesson();
 		showTutorial = false; // Hide tutorial temporarily when the route changes
-	}
+	});
 
 	// Fetch the user's saved snapshot for the current lesson when it's available or changes
 	$: if (lessonId) {
@@ -180,11 +178,11 @@
 	}
 
 	// Panel width logic
-	let panel1Width = 'lg:w-1/3'; // Initially 1/3 of the screen width
-	let panel2Width = 'lg:w-1/3'; // Initially 1/3 of the screen width
+	let panel1Width = $state('lg:w-1/3'); // Initially 1/3 of the screen width
+	let panel2Width = $state('lg:w-1/3'); // Initially 1/3 of the screen width
 	const panel3Width = 'lg:min-w-[450px] lg:w-1/3'; // Fixed width for the third panel
 
-	let isPanel1Collapsed = false;
+	let isPanel1Collapsed = $state(false);
 
 	// Function to toggle the width of the first panel
 	function togglePanel1Width() {
@@ -196,7 +194,7 @@
 	// RUNNER function to run the user's code
 	async function runner() {
 		clearConsole(); // Clear the console before running the code
-		$actionSnapshot = structuredClone($snapshot); // Deep clone $snapshot
+		$actionSnapshot = $state.snapshot($snapshot); // Deep clone $snapshot, unwrapping any $state proxies
 		isRunning.set(true); // Set the running state to true at the start
 		indicateRunning(); // Indicate that the code is running in the console
 		for (const block of $actionSnapshot) {
@@ -281,10 +279,11 @@
 	}
 
 	// Scroll tutorial content to the top when the route changes
-	let scrollDiv: HTMLDivElement | null = null;
+	let scrollDiv: HTMLDivElement | null = $state(null);
 
-	// Run after component updates, then scroll and reveal tutorial
-	afterUpdate(() => {
+	// After the content re-renders following a navigation, scroll to the top and reveal the tutorial
+	$effect(() => {
+		lessonId;
 		if (scrollDiv && navigating) {
 			// Scroll to the top
 			scrollDiv.scrollTo({ top: 0 });
@@ -299,7 +298,7 @@
 		}
 	});
 
-	let consoleExpanded: boolean = false;
+	let consoleExpanded = $state(false);
 
 	// Function to toggle the console panel
 	function toggleConsole() {
@@ -339,7 +338,7 @@
 			<button
 				type="button"
 				class="btn btn-sm py-0 hidden lg:inline-block"
-				on:click={togglePanel1Width}
+				onclick={togglePanel1Width}
 			>
 				{#if isPanel1Collapsed}
 					<span><FontAwesomeIcon icon={faAngleRight} /></span>
@@ -352,9 +351,11 @@
 
 		{#if hasError}
 			<div class="w-full p-4 flex justify-center items-start">
-				<aside class="alert variant-ghost-warning mt-4">
+				<aside
+					class="mt-4 flex flex-col items-start gap-2 rounded-lg border border-warning-500 bg-warning-500/20 p-4"
+				>
 					<div><FontAwesomeIcon icon={faExclamationTriangle} /></div>
-					<div class="alert-message">
+					<div class="flex-1">
 						<p>Failed to load lesson. Please try again later.</p>
 					</div>
 				</aside>
@@ -367,7 +368,11 @@
 				</div>
 			{:else}
 				<div class="w-full p-4">
-					<ProgressBar />
+					<Progress value={null}>
+						<Progress.Track>
+							<Progress.Range />
+						</Progress.Track>
+					</Progress>
 				</div>
 			{/if}
 		{/if}
@@ -421,7 +426,7 @@
 	<div class="w-full absolute bottom-0 z-40">
 		<button
 			type="button"
-			on:click={toggleConsole}
+			onclick={toggleConsole}
 			class="w-40 rounded-t-2xl flex items-center justify-between space-x-4 py-3 px-4 bg-[#3a1d2a]"
 		>
 			<h2 class="flex gap-4 items-center"><FontAwesomeIcon icon={faEye} /> Console</h2>
@@ -451,14 +456,14 @@
 		<div class="flex gap-2">
 			<!-- STOP button, if running -->
 			{#if $isRunning}
-				<button type="button" on:click={handleStop} class="btn btn-sm bg-primary-900 flex gap-2">
+				<button type="button" onclick={handleStop} class="btn btn-sm bg-primary-900 flex gap-2">
 					<FontAwesomeIcon icon={faStop} /> Stop
 				</button>
 			{/if}
 			<!-- Main RUN button -->
 			<button
 				type="button"
-				on:click={runner}
+				onclick={runner}
 				disabled={$isRunning}
 				class="btn btn-sm bg-primary-900 flex gap-2"
 			>

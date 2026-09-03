@@ -1,22 +1,30 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 	import { faFileCode } from '@fortawesome/free-solid-svg-icons';
 
-	// Props
-	export let initiateText: string;
-	export let confirmText: string = 'Confirm';
-	export let cancelText: string = 'Cancel';
-	export let onConfirm: () => void;
-	export let initiateClass: string = 'btn btn-sm';
-	export let confirmClass: string = 'btn btn-sm variant-outline-warning';
-	export let cancelClass: string = 'btn btn-sm';
+	interface Props {
+		// Props
+		initiateText: string;
+		confirmText?: string;
+		cancelText?: string;
+		onConfirm: () => void;
+		initiateClass?: string;
+		confirmClass?: string;
+		cancelClass?: string;
+	}
+
+	let {
+		initiateText,
+		confirmText = 'Confirm',
+		cancelText = 'Cancel',
+		onConfirm,
+		initiateClass = 'btn btn-sm',
+		confirmClass = 'btn btn-sm preset-outlined-warning-500',
+		cancelClass = 'btn btn-sm',
+	}: Props = $props();
 
 	// State
-	let showConfirmButtons = false;
-
-	// Dispatcher
-	const dispatch = createEventDispatcher();
+	let showConfirmButtons = $state(false);
 
 	// Methods
 	const initiate = () => {
@@ -28,7 +36,6 @@
 		if (onConfirm) {
 			onConfirm();
 		}
-		dispatch('confirmed');
 	};
 
 	const cancel = () => {
@@ -39,8 +46,8 @@
 <!-- Render the initiate button or confirm/cancel buttons based on state -->
 {#if showConfirmButtons}
 	<div class="flex">
-		<button type="button" class={cancelClass} on:click={cancel}>{cancelText}</button>
-		<button type="button" class={confirmClass} on:click={confirm}>
+		<button type="button" class={cancelClass} onclick={cancel}>{cancelText}</button>
+		<button type="button" class={confirmClass} onclick={confirm}>
 			{#if initiateText === 'Snapshot'}
 				<FontAwesomeIcon icon={faFileCode} />
 			{/if}
@@ -48,7 +55,7 @@
 		>
 	</div>
 {:else}
-	<button type="button" class={initiateClass} on:click={initiate}>
+	<button type="button" class={initiateClass} onclick={initiate}>
 		{#if initiateText === 'Snapshot'}
 			<FontAwesomeIcon icon={faFileCode} />
 		{/if}

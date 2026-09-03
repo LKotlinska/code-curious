@@ -5,14 +5,18 @@
 	import { fade } from 'svelte/transition';
 	import NavButton from './NavButton.svelte';
 
-	// Expose the data prop to receive the data from the parent +page.svelte
-	export let data;
-	let nextTitle = '';
-	let previousTitle = '';
-	let titlesLoaded: boolean = false;
+	interface Props {
+		// Expose the data prop to receive the data from the parent +page.svelte
+		data: any;
+	}
+
+	let { data }: Props = $props();
+	let nextTitle = $state('');
+	let previousTitle = $state('');
+	let titlesLoaded: boolean = $state(false);
 
 	// When data changes, update the next and previous lesson titles using the fetchLessonTitle function
-	$: {
+	$effect(() => {
 		(async () => {
 			titlesLoaded = false; // Set loading flag
 			if (data.nextLesson) {
@@ -25,7 +29,7 @@
 			}
 			titlesLoaded = true; // Titles are now loaded
 		})();
-	}
+	});
 
 	// Helper function to split placeholder at , into an array
 	const parsePlaceholder = (placeholder: string) => {

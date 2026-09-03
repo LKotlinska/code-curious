@@ -1,16 +1,20 @@
 <script lang="ts">
 	import { colors } from '$lib/utils/colors';
 
-	// The color prop to be updated when a color is selected
-	export let value: string;
-	let color: string = value;
+	interface Props {
+		// The color prop to be updated when a color is selected
+		value: string;
+	}
+
+	let { value = $bindable() }: Props = $props();
+	let color: string = $state(value);
 
 	// When the color changes, update the value prop
 	// this will be used to update the string value in
 	// the parent StringModal component
-	$: {
+	$effect(() => {
 		value = color;
-	}
+	});
 </script>
 
 <div class="color-picker" role="radiogroup" aria-label="Choose a color">

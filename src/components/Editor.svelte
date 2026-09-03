@@ -25,10 +25,10 @@
 	import { snapshot, saveSnapshot, loadSnapshot } from '$lib/stores/snapshots';
 	import { beforeNavigate } from '$app/navigation';
 
-	export let data;
+	let { data } = $props();
 	export let runner: () => Promise<void>;
 
-	let lessonSlug: string | undefined;
+	let lessonSlug = $derived($page.params.lessonId);
 
 	// Subscribe to the lesson slug from the page store
 	$: lessonSlug = $page.params.lessonId;
@@ -48,9 +48,9 @@
 	});
 
 	// ID of the block whose edit panel is currently open (blocks share one id space)
-	let activeEditId: number | null = null;
+	let activeEditId: number | null = $state(null);
 	// Type of the new block whose create panel is currently open, or null
-	let newType: string | null = null;
+	let newType: string | null = $state(null);
 
 	const handleClose = () => {
 		activeEditId = null;
@@ -116,7 +116,7 @@
 				<!-- Log block -->
 				{#if block.blockType === 'log'}
 					<button
-						on:click={() => {
+						onclick={() => {
 							activateBlock(block);
 						}}
 						type="button"
@@ -133,7 +133,7 @@
 							{/if}
 							{#if block.selectedId}
 								<div class="px-2 py-1 flex gap-2 items-center border-l-[1px] border-secondary-900">
-									<span class="badge variant-filled text-md font-bold rounded-none"
+									<span class="badge preset-filled text-md font-bold rounded-none"
 										>{getVariableName(block.selectedId)}</span
 									>
 								</div>
@@ -153,7 +153,7 @@
 				<!-- Action block -->
 				{#if block.blockType === 'action'}
 					<button
-						on:click={() => {
+						onclick={() => {
 							activateBlock(block);
 						}}
 						type="button"
@@ -165,7 +165,7 @@
 								{block.action}
 							</div>
 							<div class="px-2 py-1 flex gap-2 items-center border-l-[1px] border-secondary-900">
-								<span class="badge variant-filled text-md font-bold rounded-none">
+								<span class="badge preset-filled text-md font-bold rounded-none">
 									{getVariableName(block.variableId)}
 								</span>
 							</div>
@@ -177,25 +177,25 @@
 				{#if activeEditId === block.id}
 					<div class="w-full pl-4 border-l-2 border-secondary-900">
 						{#if block.blockType === 'log'}
-							<LogModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+							<LogModal editMode={true} isOpen variableId={block.id} onclose={handleClose} />
 						{:else if block.blockType === 'action'}
 							<ActionModal
 								editMode={true}
 								isOpen
 								variableId={null}
 								actionId={block.id}
-								on:close={handleClose}
+								onclose={handleClose}
 							/>
 						{:else if block.type === 'string'}
-							<StringModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+							<StringModal editMode={true} isOpen variableId={block.id} onclose={handleClose} />
 						{:else if block.type === 'number'}
-							<NumberModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+							<NumberModal editMode={true} isOpen variableId={block.id} onclose={handleClose} />
 						{:else if block.type === 'boolean'}
-							<BooleanModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+							<BooleanModal editMode={true} isOpen variableId={block.id} onclose={handleClose} />
 						{:else if block.type === 'object'}
-							<ObjectModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+							<ObjectModal editMode={true} isOpen variableId={block.id} onclose={handleClose} />
 						{:else if block.type === 'array'}
-							<ArrayModal editMode={true} isOpen variableId={block.id} on:close={handleClose} />
+							<ArrayModal editMode={true} isOpen variableId={block.id} onclose={handleClose} />
 						{/if}
 					</div>
 				{/if}
@@ -206,10 +206,10 @@
 
 	<!-- Add-block buttons: always their own line, never pushed around by an open panel -->
 	<section class="flex flex-wrap gap-2 lg:gap-4 items-start pt-2">
-		<NewVariable on:pick={(e) => startNew(e.detail)} />
-		<NewLog on:pick={(e) => startNew(e.detail)} />
+		<NewVariable onpick={(type) => startNew(type)} />
+		<NewLog onpick={(type) => startNew(type)} />
 		<button
-			on:click={() => startNew('action')}
+			onclick={() => startNew('action')}
 			type="button"
 			class="btn btn-sm bg-primary-900 flex gap-2"
 		>
@@ -221,24 +221,24 @@
 	{#if newType}
 		<div class="w-full mt-4">
 			{#if newType === 'string'}
-				<StringModal editMode={false} isOpen variableId={undefined} on:close={handleClose} />
+				<StringModal editMode={false} isOpen variableId={undefined} onclose={handleClose} />
 			{:else if newType === 'number'}
-				<NumberModal editMode={false} isOpen variableId={undefined} on:close={handleClose} />
+				<NumberModal editMode={false} isOpen variableId={undefined} onclose={handleClose} />
 			{:else if newType === 'boolean'}
-				<BooleanModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+				<BooleanModal editMode={false} isOpen variableId={null} onclose={handleClose} />
 			{:else if newType === 'object'}
-				<ObjectModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+				<ObjectModal editMode={false} isOpen variableId={null} onclose={handleClose} />
 			{:else if newType === 'array'}
-				<ArrayModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+				<ArrayModal editMode={false} isOpen variableId={null} onclose={handleClose} />
 			{:else if newType === 'log'}
-				<LogModal editMode={false} isOpen variableId={null} on:close={handleClose} />
+				<LogModal editMode={false} isOpen variableId={null} onclose={handleClose} />
 			{:else if newType === 'action'}
 				<ActionModal
 					editMode={false}
 					isOpen
 					variableId={null}
 					actionId={null}
-					on:close={handleClose}
+					onclose={handleClose}
 				/>
 			{/if}
 		</div>

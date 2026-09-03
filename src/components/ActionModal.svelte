@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
 	import InlinePanel from './InlinePanel.svelte';
 	import { faFloppyDisk, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
-	import type { Action, VariableType } from '$lib/types';
+	import type { Action } from '$lib/types';
 	import { snapshot } from '$lib/stores/snapshots'; // Snapshot store
 
-	export let editMode: boolean;
-	export let isOpen: boolean;
-	export let actionId;
-	export let variableId;
-	let variable: VariableType;
+	interface Props {
+		editMode: boolean;
+		isOpen: boolean;
+		actionId: any;
+		variableId: any;
+		onclose: () => void;
+	}
 
-	// Hold the variables from the snapshot store
-	let availableVariables = $snapshot.filter((v) => v.blockType === 'variable');
+	let { editMode, isOpen, actionId, variableId, onclose }: Props = $props();
 
 	// Actions multidimensional array. Each sub-array contains the action name and the type of value it requires.
 	const actions: string[][] = [
@@ -24,84 +24,55 @@
 		['increase', 'number'],
 		['decrease', 'number'],
 	];
-	// Available actions for the current variable
-	let availableActions: string[][] = actions;
 
-	// Not all actions are associated with a variable
-	if (variableId) {
-		variable = { ...$snapshot.find((v) => v.id === variableId) };
-		// Filter available actions based on the variable type
-		availableActions = actions.filter((a) => a[1] === variable.type);
+	function buildAction(): Action {
+		// In edit mode, clone the action to avoid directly modifying the store object
+		if (editMode && actionId !== null) {
+			return { ...$snapshot.find((a) => a.id === actionId) } as Action;
+		}
+		// Not in edit mode but with an existing variableId: create a new action for it
+		if (!editMode && variableId !== null) {
+			return { id: Date.now(), blockType: 'action', variableId, action: '' };
+		}
+		// Otherwise create a new action without a variable
+		return { id: Date.now(), blockType: 'action', action: '' };
 	}
-	let action: Action;
+
+	let action = $state<Action>(buildAction());
 
 	// Snapshot store
-	$: _snapshot = $snapshot;
+	let _snapshot = $derived($snapshot);
 
-	// If in edit mode, get the action with the given ID
-	if (editMode && actionId !== null) {
-		// Clone the action to avoid directly modifying the store object
-		action = { ...$snapshot.find((a) => a.id === actionId) };
-		if (action.variableId) {
-			// Get the type of the associated variable
-			const type = getVariableType(action.variableId);
-			// Filter available actions based on the variable type
-			availableActions = actions.filter((a) => a[1] === type);
-		}
-	}
-	// Else if not in edit mode but with existing variableId, create a new action
-	else if (!editMode && variableId !== null) {
-		action = {
-			id: Date.now(),
-			blockType: 'action',
-			variableId: variableId,
-			action: '',
-		};
-		// Filter available actions based on the variable type
-		availableActions = actions.filter((a) => a[1] === variable.type);
-	}
-	// Else create a new action without a variable
-	else {
-		action = {
-			id: Date.now(),
-			blockType: 'action',
-			action: '',
-		};
-	}
+	// Variables available to attach an action to
+	let availableVariables = $derived($snapshot.filter((v) => v.blockType === 'variable'));
 
-	// When action.variableId changes, update the available actions
-	$: {
+	// Actions available for the currently selected variable (all actions when none is selected)
+	let availableActions = $derived.by(() => {
 		if (action.variableId) {
 			const type = getVariableType(action.variableId);
-			availableActions = actions.filter((a) => a[1] === type);
+			return actions.filter((a) => a[1] === type);
 		}
-	}
-
-	// When the snapshot store changes, update the available variables
-	$: {
-		availableVariables = $snapshot.filter((v) => v.blockType === 'variable');
-	}
-
-	const dispatch = createEventDispatcher();
+		return actions;
+	});
 
 	const closeModal = () => {
-		dispatch('close');
+		onclose();
 	};
 
 	const deleteAction = () => {
 		$snapshot = _snapshot.filter((a) => a.id !== action.id);
-		dispatch('close');
+		onclose();
 	};
 
 	const onSave = () => {
 		if (editMode) {
-			$snapshot = _snapshot.map((a) => (a.id === action.id ? action : a));
-			dispatch('close');
+			$snapshot = _snapshot.map((a) => (a.id === action.id ? $state.snapshot(action) : a));
+			onclose();
 			return;
 		} else {
-			$snapshot = [..._snapshot, action];
+			$snapshot = [..._snapshot, $state.snapshot(action)];
 		}
-		dispatch('close');
+		onclose();
 	};
 
 	function getVariableType(id: number) {
@@ -110,58 +81,66 @@
 	}
 </script>
 
-<InlinePanel {isOpen} on:close={closeModal}>
-	<div slot="header" class="card-header flex justify-between items-start">
-		<div class="flex flex-col">
-			<h4 class="text-lg font-semibold">
-				{!editMode ? 'New Action' : 'Edit Action'}
-			</h4>
-		</div>
-		<button on:click={closeModal}><FontAwesomeIcon icon={faXmark} /></button>
-	</div>
-	<form
-		slot="content"
-		on:submit|preventDefault={onSave}
-		class="px-4 flex flex-col gap-4 items-start"
-	>
-		<div class="flex gap-4">
-			<!-- Variable select -->
-			<div class="label">
-				<span>Variable</span>
-				<select name="variables" class="select p-1" bind:value={action.variableId} size={3}>
-					{#each availableVariables as availableVar}
-						<option value={availableVar.id}>{availableVar.name}</option>
-					{/each}
-				</select>
+<InlinePanel {isOpen} onclose={closeModal}>
+	{#snippet header()}
+		<div class="card-header flex justify-between items-start">
+			<div class="flex flex-col">
+				<h4 class="text-lg font-semibold">
+					{!editMode ? 'New Action' : 'Edit Action'}
+				</h4>
 			</div>
-			<!-- Action select -->
-			<div class="label">
-				<span>Action</span>
-				<select name="action" class="select p-1" bind:value={action.action} size={3}>
-					{#each availableActions as action}
-						<option value={action[0]}>{action[0]}</option>
-					{/each}
-				</select>
+			<button onclick={closeModal}><FontAwesomeIcon icon={faXmark} /></button>
+		</div>
+	{/snippet}
+	{#snippet content()}
+		<form
+			onsubmit={(e) => {
+				e.preventDefault();
+				onSave();
+			}}
+			class="px-4 flex flex-col gap-4 items-start"
+		>
+			<div class="flex gap-4 flex-col sm:flex-row w-full">
+				<!-- Variable select -->
+				<div class="label">
+					<span>Variable</span>
+					<select name="variables" class="select p-1" bind:value={action.variableId} size={3}>
+						{#each availableVariables as availableVar}
+							<option value={availableVar.id}>{availableVar.name}</option>
+						{/each}
+					</select>
+				</div>
+				<!-- Action select -->
+				<div class="label">
+					<span>Action</span>
+					<select name="action" class="select p-1" bind:value={action.action} size={3}>
+						{#each availableActions as action}
+							<option value={action[0]}>{action[0]}</option>
+						{/each}
+					</select>
+				</div>
+			</div>
+			<!-- Hidden Submit Button -->
+			<button type="submit" class="sr-only">Submit</button>
+		</form>
+	{/snippet}
+	{#snippet footer()}
+		<div>
+			<div class="card-footer flex justify-between">
+				{#if editMode}
+					<button type="button" onclick={deleteAction} class="btn btn-sm bg-primary-700 flex gap-2">
+						<FontAwesomeIcon icon={faTrash} /> Delete
+					</button>
+				{:else}
+					<div></div>
+				{/if}
+				<div class="flex">
+					<button onclick={closeModal} class="btn"> Cancel </button>
+					<button onclick={onSave} class="btn btn-sm bg-secondary-700 flex gap-2">
+						<FontAwesomeIcon icon={faFloppyDisk} /> Save
+					</button>
+				</div>
 			</div>
 		</div>
-		<!-- Hidden Submit Button -->
-		<button type="submit" class="sr-only">Submit</button>
-	</form>
-	<div slot="footer">
-		<div class="card-footer flex justify-between">
-			{#if editMode}
-				<button type="button" on:click={deleteAction} class="btn btn-sm bg-primary-700 flex gap-2">
-					<FontAwesomeIcon icon={faTrash} /> Delete
-				</button>
-			{:else}
-				<div></div>
-			{/if}
-			<div class="flex">
-				<button on:click={closeModal} class="btn"> Cancel </button>
-				<button on:click={onSave} class="btn btn-sm bg-secondary-700 flex gap-2">
-					<FontAwesomeIcon icon={faFloppyDisk} /> Save
-				</button>
-			</div>
-		</div>
-	</div>
+	{/snippet}
 </InlinePanel>
