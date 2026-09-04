@@ -6,6 +6,13 @@ export type SolutionActionBlock = Omit<Action, 'id' | 'variableId'> & {
 	refName?: string; // name of the variable block this action targets, e.g. increase/decrease
 };
 
+export type SolutionLogBlock = Omit<
+	Log,
+	'id' | 'selectedId' | 'indicateRunning' | 'indicateStopped'
+> & {
+	refName?: string; // name of the variable block this log selects, if any
+};
+
 export function matchVariableBlock(
 	solution: SolutionVariableBlock,
 	snapshot: VariableType,
@@ -39,3 +46,27 @@ export function matchActionBlock(
 	}
 	return true;
 }
+
+export function matchLogBlock(
+	solution: SolutionLogBlock,
+	snapshotBlock: Log,
+	snapshot: VariableType[],
+): boolean {
+	if (solution.blockType !== snapshotBlock.blockType) return false;
+
+	if (solution.refName) {
+		return (
+			resolveRefName(snapshot, snapshotBlock.selectedId) === solution.refName &&
+			solution.selectedType === snapshotBlock.selectedType &&
+			solution.selectedIndex === snapshotBlock.selectedIndex &&
+			solution.selectedKey === snapshotBlock.selectedKey &&
+			solution.useIndex === snapshotBlock.useIndex &&
+			solution.useKey === snapshotBlock.useKey
+		);
+	}
+
+	// Plain text log, not selecting a variable
+	return solution.message === snapshotBlock.message;
+}
+
+export const checkSolution = () => {};
