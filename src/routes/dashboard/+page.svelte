@@ -14,6 +14,7 @@
 		faFloppyDisk,
 		faExclamationTriangle,
 		faRightFromBracket,
+		faTrash,
 	} from '@fortawesome/free-solid-svg-icons';
 
 	interface Snapshot {
@@ -184,8 +185,8 @@
 	});
 </script>
 
-<div class="h-full w-full flex flex-col items-center">
-	<div class="card mt-0 sm:mt-4 md:mt-12 md:w-1/2 rounded-none sm:rounded-2xl">
+<div class="h-full w-full flex flex-col items-center px-4 sm:px-0">
+	<div class="card mt-4 md:mt-12 w-full sm:w-11/12 md:w-1/2 rounded-2xl">
 		{#if hasError}
 			<section class="w-full p-4 flex justify-center items-start">
 				<aside
@@ -251,36 +252,37 @@
 				</section>
 				<hr class="opacity-50" />
 				<!-- LESSONS -->
-				<section class="p-4 flex flex-col items-start gap-4">
+				<section class="p-4 flex flex-col items-start gap-4 w-full">
 					<h3 class="text-xl">Lessons</h3>
-					<!-- Loop through lessons and display each in a list -->
-
-					<nav class="list-nav">
-						<ul>
-							{#each $lessons as lesson}
-								<li class="flex items-center m-2 justify-between">
-									<a class="flex items-center gap-2" href={`/lesson/${lesson.slug}`}>
-										<span>{lesson.title} </span>
-										<span class="badge"><FontAwesomeIcon icon={faArrowRight} /></span>
+					<!-- Loop through lessons and display each as its own row -->
+					<ul class="flex flex-col gap-2 w-full">
+						{#each $lessons as lesson}
+							{@const snapshot = $snapshots.find((s) => s.lesson_slug === lesson.slug)}
+							<li>
+								<div
+									class="card card-hover flex items-center justify-between gap-4 rounded-lg p-3"
+								>
+									<a class="flex items-center gap-2 min-w-0" href={`/lesson/${lesson.slug}`}>
+										<span class="truncate">{lesson.title}</span>
+										<span class="badge shrink-0"><FontAwesomeIcon icon={faArrowRight} /></span>
 									</a>
 									<!-- Check if there is a user snapshot saved for the current lesson -->
-									{#if $snapshots.find((snapshot) => snapshot.lesson_slug === lesson.slug)}
+									{#if snapshot}
 										<ConfirmButton
-											initiateText="Snapshot"
-											initiateClass="btn btn-sm flex items-center gap-2"
+											initiateText="Delete snapshot"
+											initiateIcon={faTrash}
+											initiateClass="btn btn-sm preset-outlined-warning-500 flex items-center gap-2 shrink-0"
 											confirmText="Delete"
-											confirmClass="btn btn-sm preset-outlined-warning-500 flex items-center gap-2"
+											confirmIcon={faTrash}
+											confirmClass="btn btn-sm preset-filled-warning-500 flex items-center gap-2 shrink-0"
+											cancelText="Keep"
 											onConfirm={() => deleteSnapshot(lesson.slug)}
 										></ConfirmButton>
 									{/if}
-								</li>
-								<!-- If it's not the last iteration, ad an HR -->
-								{#if lesson !== $lessons[$lessons.length - 1]}
-									<hr class="opacity-50" />
-								{/if}
-							{/each}
-						</ul>
-					</nav>
+								</div>
+							</li>
+						{/each}
+					</ul>
 				</section>
 				<hr class="opacity-50 mb-4" />
 				<footer class="card-footer">

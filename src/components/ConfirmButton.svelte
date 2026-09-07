@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
-	import { faFileCode } from '@fortawesome/free-solid-svg-icons';
+	import type { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 	interface Props {
 		// Props
@@ -11,6 +11,8 @@
 		initiateClass?: string;
 		confirmClass?: string;
 		cancelClass?: string;
+		initiateIcon?: IconDefinition;
+		confirmIcon?: IconDefinition;
 	}
 
 	let {
@@ -21,6 +23,8 @@
 		initiateClass = 'btn btn-sm',
 		confirmClass = 'btn btn-sm preset-outlined-warning-500',
 		cancelClass = 'btn btn-sm',
+		initiateIcon,
+		confirmIcon,
 	}: Props = $props();
 
 	// State
@@ -48,16 +52,16 @@
 	<div class="flex">
 		<button type="button" class={cancelClass} onclick={cancel}>{cancelText}</button>
 		<button type="button" class={confirmClass} onclick={confirm}>
-			{#if initiateText === 'Snapshot'}
-				<FontAwesomeIcon icon={faFileCode} />
+			{#if confirmIcon}
+				<FontAwesomeIcon icon={confirmIcon} />
 			{/if}
 			{confirmText}</button
 		>
 	</div>
 {:else}
 	<button type="button" class={initiateClass} onclick={initiate}>
-		{#if initiateText === 'Snapshot'}
-			<FontAwesomeIcon icon={faFileCode} />
+		{#if initiateIcon}
+			<FontAwesomeIcon icon={initiateIcon} />
 		{/if}
 		{initiateText}
 	</button>
