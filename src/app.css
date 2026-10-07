@@ -42,6 +42,13 @@
 	}
 }
 
+/* Add cursor: pointer on desctop only */
+@media (hover: hover) and (pointer: fine) {
+	button:not(:disabled) {
+		cursor: pointer;
+	}
+}
+
 /* modern theme */
 @font-face {
 	font-family: 'Quicksand';

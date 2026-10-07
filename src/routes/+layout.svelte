@@ -85,7 +85,7 @@
 				<button onclick={() => (isTutorialOpen = true)} class="hover:text-gray-200 cursor-pointer"
 					>Tutorial</button
 				>
-				<a href="/lesson/lesson-1" class="hover:text-gray-200">Lessons</a>
+				<a href="/lesson" class="hover:text-gray-200">Lessons</a>
 				{#if !$user}
 					<a href="/sign-in" class="hover:text-gray-200 flex gap-2 items-center"
 						><div class="w-5 h-5 flex items-center justify-center">
